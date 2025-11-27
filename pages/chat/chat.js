@@ -2,7 +2,11 @@
 Page({
 
   /**
+<<<<<<< HEAD
    * 页面的初始数据testtest3
+=======
+   * 页面的初始数据
+>>>>>>> wishpool
    */
   data: {
 

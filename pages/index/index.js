@@ -207,7 +207,7 @@ processGoodsData(goodsList) {
     },
   
 // 跳转到搜索页面
-    goToSearch() {
+goToSearch() {
     wx.navigateTo({
       url: '/pages/search/search'
     });
