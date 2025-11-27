@@ -8,10 +8,13 @@
     "pages/me/me",
     "pages/logs/logs",
     "pages/me/edit-profile/edit-profile",
+    "pages/me/my-goods/my-goods",
+    "pages/me/my-posts/my-posts",
+    "pages/me/my-favorites/my-favorites",
+    "pages/me/my-swaps/my-swaps",
     "pages/me/credit-center/credit-center",
     "pages/me/help-feedback/help-feedback",
-    "miniprogram/components/sub_package/sub_package_page",
-    "pages/search/search"
+    "pages/me/my-posts/publish/publish"
   ],
   "window": {
     "navigationBarTitleText": "上财易物",
@@ -32,12 +35,12 @@
         "text": "首页",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home-active.png"
-      },
+      },      
       {
-        "pagePath": "pages/wishpool/wishpool",
-        "text": "许愿",
-        "iconPath": "images/wish.png",
-        "selectedIconPath": "images/wish-active.png"
+        "pagePath": "pages/chat/chat",
+        "text": "会话",
+        "iconPath": "images/publish.png",
+        "selectedIconPath": "images/publish-active.png"
       },
       {
         "pagePath": "pages/publish/publish",
@@ -46,10 +49,10 @@
         "selectedIconPath": "images/publish-active.png"
       },
       {
-        "pagePath": "pages/chat/chat",
-        "text": "消息",
-        "iconPath": "images/chat.png",
-        "selectedIconPath": "images/chat-active.png"
+        "pagePath": "pages/wishpool/wishpool",
+        "text": "愿望池",
+        "iconPath": "images/wish.png",
+        "selectedIconPath": "images/wish-active.png"
       },
       {
         "pagePath": "pages/me/me",
@@ -59,5 +62,6 @@
       }
     ]
   },
+  "style": "v2",
   "sitemapLocation": "sitemap.json"
 }
