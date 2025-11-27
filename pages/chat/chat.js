@@ -2,11 +2,7 @@
 Page({
 
   /**
-<<<<<<< HEAD
-   * 页面的初始数据testtest2
-=======
    * 页面的初始数据testtest3
->>>>>>> master3
    */
   data: {
 

@@ -9,19 +9,9 @@
     "pages/logs/logs",
     "pages/me/edit-profile/edit-profile",
     "pages/me/credit-center/credit-center",
-<<<<<<< HEAD
-    "pages/me/help-feedback/help-feedback"
-
-=======
     "pages/me/help-feedback/help-feedback",
-    "miniprogram/components/sub_package/sub_package_page"
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> master3
-=======
->>>>>>> master3
-=======
->>>>>>> master3
+    "miniprogram/components/sub_package/sub_package_page",
+    "pages/search/search"
   ],
   "window": {
     "navigationBarTitleText": "上财易物",
