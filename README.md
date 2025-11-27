@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+# Campus-second-hand-trading-market
+=======
+>>>>>>> 507142d3ec43d0e6e2ca63d076058a95feaa6f79
 # 云开发 quickstart
 
 这是云开发的快速启动指引，其中演示了如何上手使用云开发的三大基础能力：
@@ -10,3 +16,7 @@
 
 - [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
 
+<<<<<<< HEAD
+=======
+>>>>>>> wishpool
+>>>>>>> 507142d3ec43d0e6e2ca63d076058a95feaa6f79

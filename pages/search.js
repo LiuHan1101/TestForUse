@@ -1,16 +1,8 @@
-// pages/chat/chat.js
+// pages/search.js
 Page({
 
   /**
-<<<<<<< HEAD
    * 页面的初始数据
-=======
-<<<<<<< HEAD
-   * 页面的初始数据testtest3
-=======
-   * 页面的初始数据
->>>>>>> wishpool
->>>>>>> 507142d3ec43d0e6e2ca63d076058a95feaa6f79
    */
   data: {
 
