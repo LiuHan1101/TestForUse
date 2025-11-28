@@ -2,12 +2,18 @@
 <view class="wishpool-page">
     <!-- 搜索栏 -->
     <view class="search-section">
+<<<<<<< HEAD
         <view class="search-bar">
             <input class="search-input" placeholder="搜索愿望..." bindinput="onSearch" value="{{searchValue}}" />
+=======
+        <view class="search-bar" bindtap="goToSearch">
+            <input class="search-input" placeholder="搜索愿望..." value="{{searchValue}}" disabled />
+>>>>>>> wishpool
             <view class="search-icon">🔍</view>
         </view>
     </view>
 
+<<<<<<< HEAD
     <!-- 标签切换 -->
     <view class="tabs-section">
         <view class="tabs">
@@ -26,6 +32,12 @@
     <view class="main-content">
         <!-- 侧边栏 -->
         <view class="sidebar-section" style="width: 175rpx; height: 2091rpx; display: block; box-sizing: border-box">
+=======
+    <!-- 主要内容区域 -->
+    <view class="main-content">
+        <!-- 侧边栏 -->
+        <view class="sidebar-section">
+>>>>>>> wishpool
             <t-side-bar value="{{contentSidebar}}" bind:change="onContentSideBarChange" class="category-sidebar">
                 <t-side-bar-item wx:for="{{categoryList}}" wx:key="value" label="{{item.label}}" value="{{item.value}}" />
             </t-side-bar>
@@ -33,6 +45,7 @@
 
         <!-- 内容区域 -->
         <view class="content-area">
+<<<<<<< HEAD
             <!-- 分类内容 -->
             <view wx:if="{{contentSidebar === 'study'}}" class="category-content">
                 <text class="content-title">学习相关愿望</text>
@@ -83,10 +96,17 @@
             <view wx:else class="category-content">
                 <text class="content-title">全部愿望</text>
                 <view class="welcome-text">请选择左侧分类查看具体愿望</view>
+=======
+            <!-- 分类标题 -->
+            <view class="category-header">
+                <text class="category-title">{{currentCategoryLabel}}愿望</text>
+                <text class="wish-count">({{wishList.length}}个)</text>
+>>>>>>> wishpool
             </view>
 
             <!-- 愿望列表 -->
             <view class="wish-list">
+<<<<<<< HEAD
                 <block wx:if="{{activeTab === 'all'}}">
                     <view class="wish-card {{item.status === 'fulfilled' ? 'fulfilled' : ''}}" 
                           wx:for="{{wishList}}" wx:key="id" data-id="{{item.id}}" bindtap="onWishItemTap">
@@ -178,4 +198,74 @@
         <text class="fab-icon">+</text>
         <text class="fab-text">发布愿望</text>
     </view>
+=======
+                <view class="wish-card" 
+                      wx:for="{{wishList}}" 
+                      wx:key="id" 
+                      data-id="{{item.id}}" 
+                      bindtap="goToDetail">
+                    
+                    <!-- 第一行：愿望标题 -->
+                    <view class="wish-title">{{item.title}}</view>
+                    
+                    <!-- 第二行：用户信息和发布时间 -->
+                    <view class="wish-meta">
+                        <view class="user-info">
+                            <image class="user-avatar" src="{{item.user.avatar}}"></image>
+                            <text class="user-name">{{item.user.nickname}}</text>
+                        </view>
+                        <text class="create-time">{{item.createTime}}</text>
+                    </view>
+                    
+                    <!-- 第三行：愿望图片（如果有） -->
+                    <view class="wish-image-section" wx:if="{{item.image}}">
+                        <image class="wish-image" 
+                               src="{{item.image}}" 
+                               mode="aspectFill"
+                               data-index="{{index}}"
+                               binderror="onImageError"
+                               lazy-load="true"></image>
+                    </view>
+                    
+                    <!-- 愿望描述 -->
+                    <view class="wish-description" wx:if="{{item.description}}">
+                        {{item.description}}
+                    </view>
+                    
+                    <!-- 底部：价格和交易方式 -->
+                    <view class="wish-footer">
+                        <view class="wish-tags">
+                            <view class="category-tag">{{item.tag}}</view>
+                            <view class="transaction-type {{item.transactionType}}">
+                                {{item.transactionType === 'cash' ? '现金' : item.transactionType === 'swap' ? '换物' : '均可'}}
+                            </view>
+                        </view>
+                        <view class="price-section">
+                            <!-- 现金价格显示 -->
+                            <view class="price-display" wx:if="{{item.priceDisplay}}">
+                                {{item.priceDisplay}}
+                            </view>
+                            <!-- 换物显示 -->
+                            <view class="swap-display" wx:if="{{item.transactionType === 'swap' || item.transactionType === 'both'}}">
+                                换物
+                            </view>
+                        </view>
+                    </view>
+                </view>
+
+                <!-- 空状态 -->
+                <view class="empty-state" wx:if="{{wishList.length === 0 && !isLoading}}">
+                    <view class="empty-icon">⭐</view>
+                    <view class="empty-text">该分类暂无愿望</view>
+                    <view class="empty-desc">发布你的第一个愿望吧</view>
+                </view>
+
+                <!-- 加载状态 -->
+                <view class="loading-state" wx:if="{{isLoading}}">
+                    <view class="loading-text">加载中...</view>
+                </view>
+            </view>
+        </view>
+    </view>
+>>>>>>> wishpool
 </view>

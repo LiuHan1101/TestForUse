@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* pages/chat/chat.wxss */
 .chat-container {
   min-height: 100vh;
@@ -129,3 +130,6 @@
   font-size: 28rpx;
   color: #8C7B6C;
 }
+=======
+/* pages/chat/chat.wxss */
+>>>>>>> wishpool
