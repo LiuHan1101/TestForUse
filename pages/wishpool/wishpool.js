@@ -1,322 +1,323 @@
 // pages/wishpool/wishpool.js
 Page({
-    data: {
-      activeTab: 'all', // all: 全部, mine: 我的愿望
-      searchValue: '',
-      wishList: [],
-      myWishes: [],
-      isLoading: false
-    },
-  
-    onLoad() {
-      this.loadWishesData();
-    },
-  
-    onShow() {
-      this.loadWishesData();
-    },
-  
-    // 加载愿望数据 - 连接到云数据库
-    async loadWishesData() {
-      try {
-        this.setData({ isLoading: true });
-        
-        const db = wx.cloud.database();
-        // 查询 wishes 集合，按创建时间倒序
-        const result = await db.collection('wishes').orderBy('createTime', 'desc').get();
-        
-        console.log('从云数据库获取的愿望:', result.data);
-        
-        if (result.data.length > 0) {
-          // 处理数据格式
-          const processedData = this.processWishesData(result.data);
-          
-          // 分离全部愿望和我的愿望（这里先用模拟逻辑，后面可以根据用户ID筛选）
-          const allWishes = processedData;
-          const myWishes = processedData.filter(item => item.isMine);
-          
-          this.setData({
-            wishList: allWishes,
-            myWishes: myWishes
-          });
-        } else {
-          // 如果数据库为空，使用模拟数据
-          this.loadMockWishData();
-        }
-        
-      } catch (error) {
-        console.error('加载愿望失败:', error);
-        // 加载失败时使用模拟数据
-        this.loadMockWishData();
-      } finally {
-        this.setData({ isLoading: false });
-      }
-    },
-  
-    // 处理愿望数据格式
-    processWishesData(wishesList) {
-      return wishesList.map(item => {
-        return {
-          id: item._id, // 使用云数据库的 _id
-          title: item.title,
-          description: item.description,
-          wishType: item.wishType || 'buy',
-          expectedPrice: parseFloat(item.expectedPrice) || 0,
-          expectedSwap: item.expectedSwap || '',
-          status: item.status || 'pending',
-          user: {
-            nickname: item.userInfo?.nickname || item.nickname || '匿名用户',
-            avatar: item.userInfo?.avatar || item.avatar || '/images/avatar.png',
-            college: item.userInfo?.college || item.college || ''
-          },
-          createTime: item.createTime,
-          matchCount: item.matchCount || 0,
-          isMine: item.isMine || false, // 可以根据当前用户ID判断
-          rawData: item
-        };
-      });
-    },
-  
-    // 模拟数据（备用）
-    loadMockWishData() {
-      const mockWishes = [
-        {
-          id: 1,
-          title: '求购线性代数课本',
-          description: '需要最新版的线性代数教材，希望有课后习题答案',
-          wishType: 'buy',
-          expectedPrice: 20,
-          expectedSwap: '',
-          status: 'pending',
-          user: {
-            nickname: '数学小白',
-            college: '数学学院',
-            avatar: '/images/avatar.png'
-          },
-          createTime: '2024-01-15',
-          matchCount: 3,
-          isMine: false
-        },
-        {
-          id: 2,
-          title: '想用Java书换Python书',
-          description: '有一本《Java核心技术》，想换一本《Python编程从入门到实践》',
-          wishType: 'swap',
-          expectedPrice: 0,
-          expectedSwap: 'Python编程从入门到实践',
-          status: 'pending',
-          user: {
-            nickname: '编程爱好者',
-            college: '计算机学院',
-            avatar: '/images/avatar.png'
-          },
-          createTime: '2024-01-14',
-          matchCount: 1,
-          isMine: false
-        }
-      ];
-      
-      const myMockWishes = [
-        {
-          id: 5,
-          title: '想要一个机械键盘',
-          description: '求一个青轴机械键盘，玩游戏用，预算100元左右',
-          wishType: 'buy',
-          expectedPrice: 100,
-          expectedSwap: '',
-          status: 'pending',
-          user: {
-            nickname: '我',
-            college: '会计学院',
-            avatar: '/images/avatar.png'
-          },
-          createTime: '2024-01-16',
-          matchCount: 1,
-          isMine: true
-        }
-      ];
-      
-      this.setData({
-        wishList: mockWishes,
-        myWishes: myMockWishes
-      });
-    },
-  
-    // 切换标签
-    switchTab(e) {
-      const tab = e.currentTarget.dataset.tab;
-      this.setData({ activeTab: tab });
-    },
-  
-    // 搜索愿望
-    onSearch(e) {
-      const value = e.detail.value;
-      this.setData({ searchValue: value });
-      
-      if (value.trim()) {
-        this.filterWishes(value.trim());
-      } else {
-        // 搜索框为空时恢复所有数据
-        this.loadWishesData();
-      }
-    },
-  
-    // 筛选愿望
-    filterWishes(keyword) {
-      const currentList = this.getCurrentList();
-      const filtered = currentList.filter(item =>
-        item.title.includes(keyword) ||
-        (item.description && item.description.includes(keyword)) ||
-        (item.expectedSwap && item.expectedSwap.includes(keyword)) ||
-        (item.user.nickname && item.user.nickname.includes(keyword))
-      );
-      
-      if (this.data.activeTab === 'mine') {
-        this.setData({ myWishes: filtered });
-      } else {
-        this.setData({ wishList: filtered });
-      }
-    },
-  
-    // 发布新愿望
-    onPublishWish() {
-      wx.showModal({
-        title: '发布愿望',
-        content: '选择愿望类型',
-        confirmText: '求购',
-        cancelText: '求换',
-        success: (res) => {
-          if (res.confirm) {
-            this.publishBuyWish();
-          } else if (res.cancel) {
-            this.publishSwapWish();
-          }
-        }
-      });
-    },
-  
-    // 发布求购愿望
-    publishBuyWish() {
+  data: {
+    activeTab: 'all',
+    searchValue: '',
+    wishList: [], // 当前分类的愿望列表
+    isLoading: false,
+    currentCategoryLabel: '图书教材',
+    
+    // 分类列表
+    contentSidebar: 'books',
+    categoryList: [
+      { label: '图书教材', value: 'books' },
+      { label: '数码产品', value: 'electronics' },
+      { label: '服饰鞋包', value: 'clothing' },
+      { label: '生活用品', value: 'daily' },
+      { label: '运动器材', value: 'sports' },
+      { label: '美妆个护', value: 'beauty' },
+      { label: '宿舍神器', value: 'dorm' },
+      { label: '学习用品', value: 'study' },
+      { label: '其他', value: 'other' }
+    ]
+  },
+
+  onLoad() {
+    this.loadWishesByCategory('books');
+  },
+
+  onShow() {
+    this.loadWishesByCategory(this.data.contentSidebar);
+  },
+
+  // 搜索功能 - 跳转到search页面
+  onSearch(e) {
+    const value = e.detail.value;
+    if (value.trim()) {
       wx.navigateTo({
-        url: '/pages/wishpool/publish-wish?type=buy'
-      });
-    },
-  
-    // 发布求换愿望
-    publishSwapWish() {
-      wx.navigateTo({
-        url: '/pages/wishpool/publish-wish?type=swap'
-      });
-    },
-  
-    // 点击愿望项
-    onWishItemTap(e) {
-      const id = e.currentTarget.dataset.id;
-      const wish = this.getCurrentList().find(item => item.id === id);
-      
-      if (wish) {
-        wx.showActionSheet({
-          itemList: ['查看详情', '联系TA', '推荐匹配商品'],
-          success: (res) => {
-            switch(res.tapIndex) {
-              case 0:
-                this.viewWishDetail(wish);
-                break;
-              case 1:
-                this.contactWisher(wish);
-                break;
-              case 2:
-                this.recommendGoods(wish);
-                break;
-            }
-          }
-        });
-      }
-    },
-  
-    // 查看愿望详情
-    viewWishDetail(wish) {
-      wx.showModal({
-        title: wish.title,
-        content: `${wish.description}\n\n期望：${
-          wish.wishType === 'buy' ? `¥${wish.expectedPrice}` : `换 ${wish.expectedSwap}`
-        }`,
-        showCancel: false,
-        confirmText: '知道了'
-      });
-    },
-  
-    // 联系许愿者
-    contactWisher(wish) {
-      wx.showToast({
-        title: `联系${wish.user.nickname}`,
-        icon: 'none'
-      });
-    },
-  
-    // 推荐匹配商品
-    recommendGoods(wish) {
-      wx.showToast({
-        title: '寻找匹配商品...',
-        icon: 'none'
-      });
-    },
-  
-    // 获取当前显示的列表
-    getCurrentList() {
-      return this.data.activeTab === 'mine' ? this.data.myWishes : this.data.wishList;
-    },
-  
-    // 下拉刷新
-    onPullDownRefresh() {
-      this.loadWishesData().finally(() => {
-        wx.stopPullDownRefresh();
-      });
-    },
-  
-    // 分享愿望
-    onShareWish(e) {
-      const id = e.currentTarget.dataset.id;
-      const wish = this.getCurrentList().find(item => item.id === id);
-      
-      if (wish) {
-        wx.showShareMenu({
-          withShareTicket: true
-        });
-      }
-    },
-  
-    // 删除我的愿望 - 连接到云数据库
-    async onDeleteWish(e) {
-      const id = e.currentTarget.dataset.id;
-      
-      wx.showModal({
-        title: '确认删除',
-        content: '确定要删除这个愿望吗？',
-        success: async (res) => {
-          if (res.confirm) {
-            try {
-              const db = wx.cloud.database();
-              // 从云数据库删除
-              await db.collection('wishes').doc(id).remove();
-              
-              // 从本地数据中移除
-              const myWishes = this.data.myWishes.filter(wish => wish.id !== id);
-              this.setData({ myWishes });
-              
-              wx.showToast({
-                title: '删除成功',
-                icon: 'success'
-              });
-            } catch (error) {
-              console.error('删除愿望失败:', error);
-              wx.showToast({
-                title: '删除失败',
-                icon: 'none'
-              });
-            }
-          }
-        }
+        url: `/pages/search/search?keyword=${value}`
       });
     }
-  })
+  },
+
+  // 跳转到搜索页面
+  goToSearch() {
+    wx.navigateTo({
+      url: '/pages/search/search'
+    });
+  },
+
+  // 侧边栏分类切换
+  onContentSideBarChange(e) {
+    const category = e.detail.value;
+    this.setData({
+      contentSidebar: category
+    });
+    this.loadWishesByCategory(category);
+  },
+
+  // 根据分类加载愿望
+  async loadWishesByCategory(category) {
+    try {
+      this.setData({ isLoading: true });
+      
+      // 更新当前分类名称
+      this.updateCategoryLabel(category);
+      
+      const db = wx.cloud.database();
+      
+      // 先尝试从数据库加载愿望数据
+      let hasData = false;
+      try {
+        // 查询指定分类的愿望，按创建时间倒序
+        const result = await db.collection('POST')
+          .where({
+            categories: category,
+            switch: 'wish' // 只显示愿望
+          })
+          .orderBy('createTime', 'desc')
+          .get();
+        
+        console.log(`分类 ${category} 的愿望:`, result.data);
+        
+        if (result.data.length > 0) {
+          const processedData = this.processWishesData(result.data);
+          this.setData({
+            wishList: processedData
+          });
+          hasData = true;
+        }
+      } catch (dbError) {
+        console.error('数据库查询失败:', dbError);
+      }
+      
+      // 如果数据库没有数据，使用模拟数据
+      if (!hasData) {
+        console.log('使用模拟数据');
+        this.loadMockWishesByCategory(category);
+      }
+      
+    } catch (error) {
+      console.error('加载分类愿望失败:', error);
+      // 确保出错时也加载模拟数据
+      this.loadMockWishesByCategory(category);
+    } finally {
+      this.setData({ isLoading: false });
+    }
+  },
+
+  // 更新当前分类标签
+  updateCategoryLabel(categoryValue) {
+    const category = this.data.categoryList.find(item => item.value === categoryValue);
+    if (category) {
+      this.setData({
+        currentCategoryLabel: category.label
+      });
+    }
+  },
+
+  // 处理愿望数据格式 - 删除用户和时间信息
+  processWishesData(wishesList) {
+    return wishesList.map(item => {
+      // 处理图片URL - 支持多张图片
+      let allImages = [];
+      if (item.images && item.images.length > 0) {
+        allImages = item.images.map(img => {
+          if (img.startsWith('cloud://') || img.startsWith('http')) {
+            return img;
+          } else {
+            return img;
+          }
+        });
+      }
+      
+      // 处理显示图片（最多显示3张，多余在第三张显示数量）
+      const displayImages = this.processDisplayImages(allImages);
+      
+      // 处理价格显示 - 改为人民币符号和数字
+      let priceDisplay = '';
+      if (item.transactionType === 'cash' || item.transactionType === 'both') {
+        if (item.priceRange) {
+          priceDisplay = '¥' + item.priceRange.replace('元', '').replace('-', '-¥');
+        } else if (item.price) {
+          priceDisplay = '¥' + item.price;
+        }
+      }
+      
+      // 处理自定义标签
+      let customTags = [];
+      if (item.customTags && Array.isArray(item.customTags)) {
+        customTags = item.customTags;
+      } else if (item.tags) {
+        customTags = Array.isArray(item.tags) ? item.tags : [item.tags];
+      }
+      
+      return {
+        id: item._id || item.id,
+        title: item.title,
+        description: item.description,
+        price: parseFloat(item.price) || 0,
+        priceDisplay: priceDisplay,
+        allImages: allImages, // 所有图片
+        displayImages: displayImages.images, // 显示的图片（最多3张）
+        totalImages: allImages.length, // 总图片数量
+        transactionType: item.transactionType || 'cash',
+        customTags: customTags, // 自定义标签
+        switch: item.switch,
+        expectedSwap: item.expectedSwap || '',
+        rawData: item
+      };
+    });
+  },
+
+  // 处理显示图片逻辑 - 保持原有的多图显示逻辑
+  processDisplayImages(images) {
+    if (!images || images.length === 0) {
+      return { images: [], totalImages: 0 };
+    }
+    
+    const displayImages = images.slice(0, 3).map((url, index) => ({ 
+      url, 
+      isLast: index === 2 && images.length > 3 // 标记是否为最后一张且需要显示数量
+    }));
+    
+    return {
+      images: displayImages,
+      totalImages: images.length
+    };
+  },
+
+  // 模拟愿望数据 - 删除用户和时间信息
+  loadMockWishesByCategory(category) {
+    const mockData = {
+      'books': [
+        { 
+          id: 1, 
+          title: '线性代数课本', 
+          price: 20, 
+          priceRange: '20-30',
+          images: ['/images/demo2.jpg', '/images/demo1.jpg', '/images/demo3.jpg', '/images/demo4.jpg'], // 多张图片
+          transactionType: 'cash', 
+          customTags: ['教材', '数学', '课后答案'], // 自定义标签
+          description: '需要上海财经大学出版社的线性代数教材，希望有课后习题答案',
+          switch: 'wish'
+        },
+        { 
+          id: 4, 
+          title: 'Python编程教材', 
+          price: 25, 
+          images: ['/images/demo1.jpg'], // 单张图片
+          transactionType: 'cash', 
+          customTags: ['编程', '计算机'],
+          description: 'Python入门教材，人民邮电出版社',
+          switch: 'wish'
+        }
+      ],
+      'electronics': [
+        { 
+          id: 3, 
+          title: '机械键盘', 
+          price: 0, 
+          images: ['/images/demo1.jpg', '/images/demo2.jpg'], // 2张图片
+          transactionType: 'swap', 
+          customTags: ['外设', '游戏'],
+          expectedSwap: '用我的游戏鼠标交换',
+          description: '青轴机械键盘，希望换一个雷蛇游戏鼠标',
+          switch: 'wish'
+        }
+      ],
+      'sports': [
+        { 
+          id: 8, 
+          title: '篮球', 
+          price: 0, 
+          images: [], // 无图片
+          transactionType: 'swap', 
+          customTags: ['运动', '球类'],
+          expectedSwap: '用我的足球交换',
+          description: '7号篮球，可用全新足球交换',
+          switch: 'wish'
+        }
+      ]
+      // ... 其他分类数据
+    };
+    
+    const wishes = mockData[category] || [];
+    // 处理模拟数据的图片显示
+    const processedWishes = wishes.map(item => {
+      const displayImages = this.processDisplayImages(item.images);
+      const priceDisplay = item.transactionType === 'cash' || item.transactionType === 'both' ? 
+        (item.priceRange ? '¥' + item.priceRange.replace('-', '-¥') : '¥' + item.price) : '';
+      
+      return {
+        ...item,
+        displayImages: displayImages.images,
+        totalImages: item.images.length,
+        priceDisplay: priceDisplay
+      };
+    });
+    
+    this.setData({
+      wishList: processedWishes
+    });
+  },
+
+  // 图片加载失败处理
+  onImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    const imgIndex = e.currentTarget.dataset.imgIndex;
+    const key = `wishList[${index}].displayImages[${imgIndex}].url`;
+    this.setData({ 
+      [key]: '/images/default.jpg'
+    });
+  },
+
+  // 跳转到愿望详情 - 修复模拟数据跳转问题
+  goToDetail(e) {
+    console.log('点击事件:', e);
+    
+    const index = e.currentTarget.dataset.index;
+    console.log('点击的索引:', index);
+    
+    const wish = this.data.wishList[index];
+    console.log('愿望数据:', wish);
+    
+    if (wish) {
+        // 统一传递完整数据，让详情页自己处理
+        const url = `/pages/detail/detail?goodsData=${encodeURIComponent(JSON.stringify(wish))}&type=wish`;
+        console.log('跳转URL:', url);
+        
+        wx.navigateTo({
+            url: url,
+            fail: (err) => {
+                console.error('跳转失败:', err);
+                wx.showToast({
+                    title: '跳转失败',
+                    icon: 'none'
+                });
+            }
+        });
+    } else {
+        console.error('未找到愿望数据');
+        wx.showToast({
+            title: '数据加载中，请稍后',
+            icon: 'none'
+        });
+    }
+  },
+
+  // 下拉刷新
+  onPullDownRefresh() {
+    this.loadWishesByCategory(this.data.contentSidebar).finally(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  // 分享功能
+  onShareAppMessage() {
+    return {
+      title: '上财易物 - 愿望池',
+      path: '/pages/wishpool/wishpool'
+    };
+  }
+});
