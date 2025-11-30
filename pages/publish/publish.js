@@ -564,15 +564,48 @@ onTypeChange(e) {
         viewCount: 0,
         likeCount: 0
       }
-      
-      // 2. 直接写入云数据库
-      try {
-        const result = await db.collection('goods').add({
-          data: goodsData
-        })
-        console.log('发布成功，商品ID:', result._id)
-      } catch (error) {
-        console.error('发布失败:', error)
-      }
-    },
-  })
+
+    // 立即更新数据
+    this.setData({
+      'formData.categories': currentCategories,
+      selectedCategoriesText: this.getSelectedCategoriesText(currentCategories)
+    });
+  },
+
+
+  // 在onLoad中初始化
+  onLoad() {
+    this.updateSelectedCategoriesText();
+  },
+
+  // pages/publish/publish.js
+async publishGoods() {
+    const db = wx.cloud.database()
+    
+    // 1. 准备商品数据
+    const goodsData = {
+      title: this.data.title,
+      description: this.data.description,
+      price: this.data.price,
+      images: this.data.images,
+      categories: this.data.categories,
+      transactionType: this.data.transactionType,
+      status: 'selling',
+      switch:this.data.switch,
+      createTime: db.serverDate(),
+      viewCount: 0,
+      likeCount: 0
+    }
+    
+    // 2. 直接写入云数据库
+    try {
+      const result = await db.collection('goods').add({
+        data: goodsData
+      })
+      console.log('发布成功，商品ID:', result._id)
+    } catch (error) {
+      console.error('发布失败:', error)
+    }
+  },
+})
+

@@ -17,6 +17,12 @@
     box-shadow: 0 2px 8px rgba(93, 78, 96, 0.1);
 } 
 
+.back-arrow {
+    font-size: 20px;
+    margin-right: 15px;
+    color: #5D4E60;
+}
+
 .chat-title {
     font-size: 18px;
     font-weight: 500;
@@ -44,8 +50,9 @@
 }
 
 .message {
-    display: flex;
     margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
 }
 
 .message.received {
