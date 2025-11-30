@@ -14,7 +14,8 @@
     "pages/me/profile/profile",
     "pages/me/my-goods/my-goods",
     "pages/me/set/set",
-    "pages/chatdetail/chatdetail"
+    "pages/chatdetail/chatdetail",
+    "pages/login/login"
   ],
   "window": {
     "navigationBarTitleText": "上财易物",
@@ -22,7 +23,12 @@
     "navigationBarTextStyle": "white",
     "backgroundColor": "#FAF7F2",
     "backgroundTextStyle": "dark",
-    "enablePullDownRefresh": true
+    "enablePullDownRefresh": true,
+    "lazyCodeLoading": "requiredComponents",
+    "requireBackgroundModes": ["audio", "location"],
+    "optimization": {
+        "subPackages": true
+    }
   },
   "tabBar": {
     "color": "#8C7B6C",
@@ -62,5 +68,8 @@
       }
     ]
   },
+
+  
+
   "sitemapLocation": "sitemap.json"
 }

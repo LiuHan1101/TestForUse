@@ -1,0 +1,49 @@
+<!-- pages/login/login.wxml -->
+<view class="login-container">
+  <!-- 头部 -->
+  <view class="login-header">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <text class="app-name">校园易物</text>
+    <text class="welcome-text">欢迎使用校园二手交易平台</text>
+  </view>
+
+  <!-- 登录按钮 -->
+  <view class="login-btn-container">
+    <button 
+      class="login-btn {{isLogging ? 'disabled' : ''}}" 
+      bindtap="onWechatLogin"
+      loading="{{isLogging}}"
+      disabled="{{isLogging}}"
+    >
+      {{isLogging ? '登录中...' : '微信一键登录'}}
+    </button>
+
+    <!-- 用户信息授权（根据需要显示） -->
+    <button 
+      class="auth-btn" 
+      bindtap="onGetUserProfile"
+      wx:if="{{canIUseGetUserProfile}}"
+    >
+      授权用户信息
+    </button>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="error-tips" wx:if="{{loginError}}">
+    <text class="error-text">{{loginError}}</text>
+    <text class="retry-btn" bindtap="onRetry">重试</text>
+  </view>
+
+  <!-- 协议说明 -->
+  <view class="agreement">
+    <text>登录即代表同意</text>
+    <text class="link" bindtap="showUserAgreement">《用户协议》</text>
+    <text>和</text>
+    <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>
+  </view>
+
+  <!-- 客服联系 -->
+  <view class="customer-service">
+    <text class="contact-text" bindtap="onContactCustomer">遇到问题？联系客服</text>
+  </view>
+</view>
