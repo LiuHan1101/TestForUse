@@ -589,8 +589,4 @@ async publishGoods() {
       console.error('发布失败:', error)
     }
   },
-<<<<<<< HEAD
 })
-=======
-})
->>>>>>> wishpool
