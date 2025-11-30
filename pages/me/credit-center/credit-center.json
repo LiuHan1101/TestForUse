@@ -1,3 +1,8 @@
 {
-  "usingComponents": {}
-}
+    "usingComponents": {},
+    "navigationBarTitleText": "信用中心",
+    "navigationBarBackgroundColor": "#E8B4B8",
+    "navigationBarTextStyle": "white",
+    "enablePullDownRefresh": true,
+    "backgroundColor": "#FAF7F2"
+  }
