@@ -63,7 +63,7 @@
 
   <!-- 底部操作 -->
   <view class="action-section">
-    <button class="share-btn" bindtap="onShareAppMessage" open-type="share" style="width: 333rpx; height: 81rpx; display: block; box-sizing: border-box; left: -6rpx; top: 16rpx; position: relative">
+    <button class="share-btn" bindtap="onShareAppMessage" open-type="share" style="width: 333rpx; height: 118rpx; display: block; box-sizing: border-box; left: -6rpx; top: 16rpx; position: relative">
       🔗 分享给同学
     </button>
     <view class="contact-support" bindtap="onContactCustomer">
