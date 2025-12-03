@@ -15,7 +15,8 @@
     "pages/me/my-goods/my-goods",
     "pages/me/set/set",
     "pages/chatdetail/chatdetail",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/register/register"
   ],
   "window": {
     "navigationBarTitleText": "上财易物",
@@ -25,9 +26,12 @@
     "backgroundTextStyle": "dark",
     "enablePullDownRefresh": true,
     "lazyCodeLoading": "requiredComponents",
-    "requireBackgroundModes": ["audio", "location"],
+    "requireBackgroundModes": [
+      "audio",
+      "location"
+    ],
     "optimization": {
-        "subPackages": true
+      "subPackages": true
     }
   },
   "tabBar": {
@@ -68,8 +72,5 @@
       }
     ]
   },
-
-  
-
   "sitemapLocation": "sitemap.json"
 }

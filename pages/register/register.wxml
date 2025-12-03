@@ -1,0 +1,156 @@
+<!-- pages/register/register.wxml -->
+<view class="register-container">
+  <!-- 顶部标题 -->
+  <view class="page-header">
+    <text class="title">完善个人信息</text>
+    <text class="subtitle">请填写以下信息完成注册</text>
+  </view>
+
+  <!-- 头像上传区域 -->
+  <view class="avatar-section">
+    <view class="avatar-title">头像</view>
+    <view class="avatar-upload" bindtap="chooseAvatar">
+      <view class="avatar-preview">
+        <image 
+          wx:if="{{avatarUrl}}" 
+          src="{{avatarUrl}}" 
+          mode="aspectFill" 
+          class="avatar-image"
+          bindtap="previewAvatar"
+        />
+        <view wx:else class="avatar-placeholder">
+          <text class="icon">＋</text>
+          <text class="hint">上传头像</text>
+        </view>
+      </view>
+      
+      <!-- 头像操作按钮 -->
+      <view class="avatar-actions" wx:if="{{avatarUrl}}">
+        <button 
+          class="avatar-action-btn view-btn"
+          size="mini"
+          bindtap="previewAvatar"
+        >预览</button>
+        <button 
+          class="avatar-action-btn clear-btn"
+          size="mini"
+          bindtap="clearAvatar"
+        >清除</button>
+      </view>
+      
+      <text class="avatar-tip">点击上传头像（可选）</text>
+    </view>
+  </view>
+
+  <!-- 表单区域 -->
+  <view class="form-section">
+    <!-- 学号 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">学号</text>
+        <text class="required">*</text>
+      </view>
+      <input 
+        class="form-input"
+        placeholder="请输入学号（至少6位数字）"
+        placeholder-class="placeholder"
+        maxlength="20"
+        value="{{formData.studentId}}"
+        bindinput="onInput"
+        data-field="studentId"
+        type="number"
+      />
+      <view class="form-tip">用于身份验证，请准确填写</view>
+    </view>
+
+    <!-- 姓名 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">姓名</text>
+        <text class="required">*</text>
+      </view>
+      <input 
+        class="form-input"
+        placeholder="请输入真实姓名（至少2位字符）"
+        placeholder-class="placeholder"
+        maxlength="10"
+        value="{{formData.name}}"
+        bindinput="onInput"
+        data-field="name"
+      />
+      <view class="form-tip">请填写真实姓名，以便同学识别</view>
+    </view>
+
+    <!-- 手机号 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">手机号</text>
+        <text class="required">*</text>
+      </view>
+      <input 
+        class="form-input"
+        placeholder="请输入手机号"
+        placeholder-class="placeholder"
+        type="number"
+        maxlength="11"
+        value="{{formData.phone}}"
+        bindinput="onInput"
+        data-field="phone"
+      />
+      <view class="form-tip">用于联系和通知</view>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="info-box">
+      <text class="info-icon">ℹ️</text>
+      <view class="info-content">
+        <text class="info-text">请确保信息准确，提交后可在个人中心修改</text>
+        <text class="info-subtext" wx:if="{{!formData.studentId || !formData.name || !formData.phone}}">
+          也可以先跳过注册，稍后完善信息
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮区域 -->
+  <view class="submit-section">
+    <!-- 主要提交按钮 -->
+    <button 
+      class="submit-btn"
+      type="primary"
+      bindtap="submitForm"
+      loading="{{isSubmitting}}"
+      disabled="{{isSubmitting}}"
+      hover-class="button-hover"
+      form-type="submit"
+    >
+      {{isSubmitting ? '提交中...' : '提交注册'}}
+    </button>
+    
+    <!-- 跳过按钮 -->
+    <view class="skip-area" wx:if="{{!formData.studentId && !formData.name && !formData.phone}}">
+      <view class="divider">
+        <view class="divider-line"></view>
+        <text class="divider-text">或</text>
+        <view class="divider-line"></view>
+      </view>
+      
+      <button 
+        class="skip-btn"
+        type="default"
+        bindtap="skipRegister"
+        hover-class="skip-btn-hover"
+      >
+        暂时跳过，稍后完善
+      </button>
+    </view>
+  </view>
+  
+  <!-- 底部提示 -->
+  <view class="footer-tip">
+    <text>提交即表示同意</text>
+    <text class="link-text" bindtap="showPrivacyPolicy">《用户协议》</text>
+    <text>和</text>
+    <text class="link-text" bindtap="showPrivacyPolicy">《隐私政策》</text>
+  </view>
+</view>

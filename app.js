@@ -1,11 +1,19 @@
 // app.js
 App({
-    onLaunch() {
+    onLaunch:function() {
+      
+        console.log('【验证】App onLaunch 执行') // 确保这行能打印出来
+        // ... 其余初始化代码
+      
       // 小程序启动时，检查登录状态
       wx.cloud.init({
         env: "cloud1-8gw6xrycfea6d00b",
         traceUser: true
       });
+          // 关键的验证日志
+    console.log('【验证】云环境初始化完成')
+    console.log('【验证】wx.cloud.ENV_ID:', wx.cloud.ENV_ID) // 此时应该打印出真实ID，而非undefined
+    console.log('【验证】当前环境是否匹配:', wx.cloud.ENV_ID === 'cloud1-8gw6xrycfea6d00b') // 应打印 true
   
       const token = wx.getStorageSync('token');
       if (token) {

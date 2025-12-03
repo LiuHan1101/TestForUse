@@ -327,7 +327,7 @@ async onSubmit() {
         status: 'selling',
         createTime: db.serverDate(), // 使用服务端时间
         viewCount: 0,
-        likeCount: 0,
+        favorite:false,
         switch:formData.switch
       };
   
@@ -430,7 +430,7 @@ async uploadImages(imagePaths) {
         createTime: db.serverDate(),
         switch:this.data.formData.switch,
         viewCount: 0,
-        likeCount: 0,
+        favorite: false ,
         userInfo: {
           nickname: '测试用户', // 可以替换为真实用户信息
           avatar: '/images/avatar.png'
@@ -576,7 +576,7 @@ async publishGoods() {
       switch:this.data.switch,
       createTime: db.serverDate(),
       viewCount: 0,
-      likeCount: 0
+      favorite: 0
     }
     
     // 2. 直接写入云数据库

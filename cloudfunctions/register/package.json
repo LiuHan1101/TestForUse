@@ -1,0 +1,9 @@
+{
+  "name": "register",
+  "version": "1.0.0",
+  "description": "注册用户详细信息",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
