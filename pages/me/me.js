@@ -1,325 +1,449 @@
 // pages/me/me.js
 Page({
-    data: {
-      userInfo: {
-        nickname: '加载中...',
-        avatar: '/images/avatar.png',
-        college: '',
-        isVerified: false,
-        joinDays: 0
-      },
-      stats: {
-        published: 0,      // 已发布 
-        inProgress: 0,     // 进行中
-        completed: 0,      // 已成交 
-        favorites: 0       // 收藏
-      },
-      menuItems: [
-        {
-          icon: '🛡️',
-          title: '信用中心',
-          url: '/pages/me/credit-center/credit-center',
-          badge: 0
-        },
-        {
-          icon: '⚙️',
-          title: '设置',
-          url: '/pages/me/set/set',
-          badge: 0
-        },
-        {
-          icon: '❓',
-          title: '帮助与反馈',
-          url: '/pages/me/help-feedback/help-feedback',
-          badge: 0
-        }
-      ],
-      isLoading: true
+  data: {
+    userInfo: {
+      nickname: '加载中...',
+      avatar: '/images/avatar.png',
+      college: '',
+      isVerified: false,
+      joinDays: 0
     },
-
-    onLoad() {
-        this.loadUserInfoFromDatabase();
-        this.loadUserStats();
-      },
-    
-      onShow() {
-        // 每次页面显示时检查是否需要更新
-        this.checkProfileUpdate();
-        this.loadUserStats();
-      },
-    
-      // 检查是否需要更新个人信息
-      checkProfileUpdate() {
-        const shouldRefresh = wx.getStorageSync('shouldRefreshProfile');
-        if (shouldRefresh) {
-          console.log('检测到需要更新个人信息');
-          this.loadUserInfoFromDatabase();
-          // 清除标志
-          wx.removeStorageSync('shouldRefreshProfile');
-        }
-      },
-    
-      // 从云数据库加载用户信息 - 增强版本
-      async loadUserInfoFromDatabase() {
-        try {
-          this.setData({ isLoading: true });
-          
-          const db = wx.cloud.database();
-          
-          // 先尝试从本地缓存加载（更快）
-          const cachedUserInfo = wx.getStorageSync('userInfo');
-          if (cachedUserInfo && cachedUserInfo.nickname !== '加载中...') {
-            console.log('使用缓存的用户信息:', cachedUserInfo);
-            this.setData({
-              userInfo: {
-                ...this.data.userInfo,
-                ...cachedUserInfo
-              }
-            });
-          }
-    
-          // 然后从云数据库加载最新数据
-          console.log('从云数据库加载用户信息...');
-          const userResult = await db.collection('users')
-            .orderBy('createTime', 'desc')
-            .limit(1)
-            .get();
-    
-          console.log('云数据库用户信息:', userResult);
-    
-          if (userResult.data.length > 0) {
-            const userData = userResult.data[0];
-            const newUserInfo = {
-              nickname: userData.nickname || '上财同学',
-              avatar: userData.avatarUrl || userData.avatar || '/images/avatar.png',
-              college: userData.college || '未知学院',
-              isVerified: userData.isVerified || false,
-              joinDays: this.calculateJoinDays(userData.createTime) || 0
-            };
-    
-            console.log('更新后的用户信息:', newUserInfo);
-            
-            this.setData({
-              userInfo: newUserInfo
-            });
-            
-            // 更新缓存
-            wx.setStorageSync('userInfo', newUserInfo);
-          } else {
-            console.log('用户表中没有数据，使用缓存数据');
-            // 如果没有云数据，但缓存有数据，就使用缓存
-            if (cachedUserInfo) {
-              this.setData({
-                userInfo: {
-                  ...this.data.userInfo,
-                  ...cachedUserInfo
-                }
-              });
-            }
-          }
-    
-        } catch (error) {
-          console.error('加载用户信息失败:', error);
-          // 失败时尝试使用缓存
-          const cachedUserInfo = wx.getStorageSync('userInfo');
-          if (cachedUserInfo) {
-            this.setData({
-              userInfo: {
-                ...this.data.userInfo,
-                ...cachedUserInfo
-              }
-            });
-          }
-        } finally {
-          this.setData({ isLoading: false });
-        }
-      },
-  
-    // 计算加入天数
-    calculateJoinDays(createTime) {
-      if (!createTime) return 0;
-      
-      const createDate = new Date(createTime);
-      const now = new Date();
-      const diffTime = now - createDate;
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      return diffDays > 0 ? diffDays : 0;
+    stats: {
+      published: 0,      // 已发布 
+      inProgress: 0,     // 进行中
+      completed: 0,      // 已成交 
+      favorites: 0       // 收藏
     },
-
-    // 加载用户统计数据
-    async loadUserStats() {
-      try {
-        const db = wx.cloud.database();
-        
-        // 获取已发布商品数量
-        const publishedResult = await db.collection('POST')
-          .where({
-            status: 'selling'
-          })
-          .count();
-        
-        // 获取已售出商品数量（需要你的业务逻辑）
-        const inProgressResult = await db.collection('POST')
-          .where({
-            status: 'in_progress'
-          })
-          .count();
-        
-        // 获取愿望数量
-        const favoritesResult = await db.collection('wishes')
-          .where({
-            status: 'pending'
-          })
-          .count();
-  
-        this.setData({
-          stats: {
-            published: publishedResult.total || 0,
-            inProgress: inProgressResult.total || 0,
-            completed: 0,  // 需要已成交记录表
-            favorites: favoritesResult.total || 0
-          }
-        });
-  
-        // 更新菜单徽章
-        this.updateMenuBadges();
-  
-      } catch (error) {
-        console.error('加载统计数据失败:', error);
-        // 使用默认数据
-        this.setData({
-          stats: {
-            published: 0,
-            inProgress: 0,
-            completed: 0,
-            favorites: 0
-          }
-        });
+    menuItems: [
+      {
+        icon: '🛡️',
+        title: '信用中心',
+        url: '/pages/me/credit-center/credit-center',
+        badge: 0
+      },
+      {
+        icon: '⚙️',
+        title: '设置',
+        url: '/pages/me/set/set',
+        badge: 0
+      },
+      {
+        icon: '❓',
+        title: '帮助与反馈',
+        url: '/pages/me/help-feedback/help-feedback',
+        badge: 0
       }
-    },
-  
-    // 更新菜单徽章
-    updateMenuBadges() {
-      const menuItems = [...this.data.menuItems];
-      
-      // 更新帮助与反馈徽章（现在索引为2）
-      menuItems[2].badge = this.data.stats.favorites;
-      
-      this.setData({ menuItems });
-    },
-  
-    // 点击菜单项
-    onMenuItemTap(e) {
-        const index = e.currentTarget.dataset.index;
-        const item = this.data.menuItems[index];
-        
-        console.log('点击菜单项:', item.title, '路径:', item.url);
-        
-        if (item.url) {
-          wx.navigateTo({
-            url: item.url,
-            success: (res) => {
-              console.log('跳转成功:', res);
-            },
-            fail: (err) => {
-              console.error('跳转失败:', err);
-              this.showNavigationError(item.title, err);
-            }
-          });
-        } else {
-          wx.showToast({
-            title: `${item.title}功能开发中`,
-            icon: 'none'
-          });
-        }
-      },
-  
-      // 显示导航错误信息
-      showNavigationError(title, error) {
-        wx.showModal({
-          title: '跳转失败',
-          content: `无法打开${title}\n错误: ${error.errMsg}\n\n请检查页面文件是否存在`,
-          showCancel: false,
-          confirmText: '知道了'
-        });
-      },
+    ],
+    isLoading: true,
+    userOpenId: null
+  },
 
-    // 点击用户信息区域 - 唯一进入个人主页的入口
-    onUserInfoTap() {
-        console.log('跳转到个人主页');
-        
-        // 直接跳转到个人主页
-        wx.navigateTo({
-          url: '/pages/me/profile/profile',
-          success: (res) => {
-            console.log('跳转到个人主页成功:', res);
+  onLoad() {
+    // 初始化时加载用户信息
+    this.loadUserInfoFromDatabase();
+    this.loadUserStats();
+  },
+
+  onShow() {
+    // 每次页面显示时重新加载数据
+    this.loadUserInfoFromDatabase();
+    this.loadUserStats();
+  },
+
+  // 从云数据库加载当前登录用户的个人信息
+  async loadUserInfoFromDatabase() {
+    try {
+      this.setData({ isLoading: true });
+      
+      // 1. 获取当前用户的openid
+      const openid = wx.getStorageSync('openid');
+      if (!openid) {
+        console.log('未找到openid，用户可能未登录');
+        this.setData({ 
+          userInfo: {
+            nickname: '请先登录',
+            avatar: '/images/avatar.png',
+            college: '',
+            isVerified: false,
+            joinDays: 0
           },
-          fail: (err) => {
-            console.error('跳转到个人主页失败:', err);
-            // 显示具体错误信息
-            wx.showModal({
-              title: '跳转失败',
-              content: `错误: ${err.errMsg}\n\n请检查个人主页文件是否存在`,
-              showCancel: false
-            });
+          isLoading: false 
+        });
+        return;
+      }
+      
+      this.setData({ userOpenId: openid });
+      
+      const db = wx.cloud.database();
+      
+      // 2. 从本地缓存加载（快速显示）
+      const cachedUserInfo = wx.getStorageSync('userInfo');
+      if (cachedUserInfo && cachedUserInfo.openid === openid) {
+        console.log('使用缓存的用户信息:', cachedUserInfo);
+        this.setData({
+          userInfo: {
+            ...this.data.userInfo,
+            nickname: cachedUserInfo.nickname || '上财同学',
+            avatar: cachedUserInfo.avatar || cachedUserInfo.avatarUrl || '/images/avatar.png',
+            college: cachedUserInfo.college || '未知学院',
+            isVerified: cachedUserInfo.isVerified || false,
+            joinDays: this.calculateJoinDays(cachedUserInfo.createTime) || 0
           }
         });
-    },
-
-    // 点击数据统计项
-    onStatItemTap(e) {
-      const type = e.currentTarget.dataset.type;
-      const statsMap = {
-        published: '已发布商品',
-        inProgress: '进行中交易',
-        completed: '已成交',
-        favorites: '收藏'
-      };
-      // 跳转到对应的列表页面
-      let url = '';
-      switch(type) {
-        case 'published':
-          url = '/pages/me/my-goods/my-goods?type=published';
-          break;
-        case 'inProgress':
-          url = '/pages/me/my-goods/my-goods?type=inProgress';
-          break;
-        case 'completed':
-          url = '/pages/me/my-goods/my-goods?type=completed';
-          break;
-        case 'favorites':
-          url = '/pages/me/my-goods/my-goods?type=favorites';
-          break;
       }
-  
-      if (url) {
-        wx.navigateTo({
-          url: url
+
+      // 3. 从云数据库加载最新数据（根据openid查询）
+      console.log('从云数据库查询用户信息，openid:', openid);
+      const userQuery = await db.collection('users')
+        .where({
+          openid: openid  // 关键：使用openid查询当前用户
+        })
+        .get();
+      
+      console.log('云数据库查询结果:', userQuery);
+
+      if (userQuery.data.length > 0) {
+        // 找到当前用户的信息
+        const userData = userQuery.data[0];
+        console.log('获取到的当前用户信息:', userData);
+        
+        const newUserInfo = {
+          _id: userData._id,  // 保存用户ID
+          openid: openid,
+          nickname: userData.nickname || userData.nickName || '上财同学',
+          avatar: userData.avatar || userData.avatarUrl || '/images/avatar.png',
+          college: userData.college || '未知学院',
+          isVerified: userData.isVerified || false,
+          joinDays: this.calculateJoinDays(userData.createTime) || 0,
+          createTime: userData.createTime,
+          updateTime: userData.updateTime,
+          // 其他可能的字段
+          studentId: userData.studentId || '',
+          phone: userData.phone || '',
+          gender: userData.gender || 0,
+          bio: userData.bio || ''
+        };
+        
+        console.log('更新的用户信息:', newUserInfo);
+        
+        // 更新页面显示
+        this.setData({
+          userInfo: {
+            nickname: newUserInfo.nickname,
+            avatar: newUserInfo.avatar,
+            college: newUserInfo.college,
+            isVerified: newUserInfo.isVerified,
+            joinDays: newUserInfo.joinDays
+          }
+        });
+        
+        // 更新本地缓存（包含完整信息）
+        const cacheData = {
+          ...newUserInfo,
+          _openid: openid  // 添加_openid字段用于兼容
+        };
+        wx.setStorageSync('userInfo', cacheData);
+        console.log('本地缓存已更新');
+        
+        // 更新全局数据
+        const app = getApp();
+        if (app && app.globalData) {
+          app.globalData.userInfo = cacheData;
+          app.globalData.isLoggedIn = true;
+        }
+        
+      } else {
+        console.log('未在数据库中找到该用户信息');
+        // 可能是新用户，还没有注册信息
+        if (!cachedUserInfo || cachedUserInfo.openid !== openid) {
+          this.setData({
+            userInfo: {
+              nickname: '新用户',
+              avatar: '/images/avatar.png',
+              college: '请完善信息',
+              isVerified: false,
+              joinDays: 0
+            }
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error('加载用户信息失败:', error);
+      
+      // 错误处理：显示缓存数据或默认数据
+      const cachedUserInfo = wx.getStorageSync('userInfo');
+      const openid = wx.getStorageSync('openid');
+      
+      if (cachedUserInfo && cachedUserInfo.openid === openid) {
+        this.setData({
+          userInfo: {
+            nickname: cachedUserInfo.nickname || '上财同学',
+            avatar: cachedUserInfo.avatar || cachedUserInfo.avatarUrl || '/images/avatar.png',
+            college: cachedUserInfo.college || '未知学院',
+            isVerified: cachedUserInfo.isVerified || false,
+            joinDays: this.calculateJoinDays(cachedUserInfo.createTime) || 0
+          }
+        });
+      } else {
+        // 显示登录提示
+        this.setData({
+          userInfo: {
+            nickname: '请先登录',
+            avatar: '/images/avatar.png',
+            college: '',
+            isVerified: false,
+            joinDays: 0
+          }
         });
       }
       
+    } finally {
+      this.setData({ isLoading: false });
+    }
+  },
+
+  // 计算加入天数
+  calculateJoinDays(createTime) {
+    if (!createTime) return 0;
+    
+    let createDate;
+    
+    // 处理不同类型的日期格式
+    if (typeof createTime === 'object' && createTime.constructor.name === 'Date') {
+      // 如果是Date对象
+      createDate = createTime;
+    } else if (typeof createTime === 'string') {
+      // 如果是字符串
+      createDate = new Date(createTime);
+    } else if (createTime.getTime) {
+      // 如果是云数据库的服务器时间对象
+      createDate = new Date(createTime.getTime());
+    } else {
+      console.log('无法解析的日期格式:', createTime);
+      return 0;
+    }
+    
+    // 检查日期是否有效
+    if (isNaN(createDate.getTime())) {
+      console.log('无效的日期:', createTime);
+      return 0;
+    }
+    
+    const now = new Date();
+    const diffTime = now.getTime() - createDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // 如果是当天加入，显示1天
+    return diffDays >= 0 ? diffDays + 1 : 0;
+  },
+
+  // 加载用户统计数据
+  async loadUserStats() {
+    try {
+      const openid = wx.getStorageSync('openid');
+      if (!openid) {
+        console.log('未登录，跳过加载统计数据');
+        return;
+      }
+      
+      const db = wx.cloud.database();
+      
+      // 获取已发布商品数量（当前用户的）
+      const publishedResult = await db.collection('POST')
+        .where({
+          _openid: openid,  // 只查询当前用户的商品
+          status: 'selling'
+        })
+        .count();
+      
+      // 获取进行中商品数量
+      const inProgressResult = await db.collection('POST')
+        .where({
+          _openid: openid,
+          status: 'in_progress'
+        })
+        .count();
+      
+      // 获取收藏数量（当前用户的）
+      const favoritesResult = await db.collection('wishes')
+        .where({
+          _openid: openid,
+          status: 'pending'
+        })
+        .count();
+
+      this.setData({
+        stats: {
+          published: publishedResult.total || 0,
+          inProgress: inProgressResult.total || 0,
+          completed: 0,  // 需要已成交记录表
+          favorites: favoritesResult.total || 0
+        }
+      });
+
+      // 更新菜单徽章
+      this.updateMenuBadges();
+
+    } catch (error) {
+      console.error('加载统计数据失败:', error);
+      // 使用默认数据
+      this.setData({
+        stats: {
+          published: 0,
+          inProgress: 0,
+          completed: 0,
+          favorites: 0
+        }
+      });
+    }
+  },
+
+  // 更新菜单徽章
+  updateMenuBadges() {
+    const menuItems = [...this.data.menuItems];
+    
+    // 更新帮助与反馈徽章（现在索引为2）
+    menuItems[2].badge = this.data.stats.favorites;
+    
+    this.setData({ menuItems });
+  },
+
+  // 点击菜单项
+  onMenuItemTap(e) {
+    const index = e.currentTarget.dataset.index;
+    const item = this.data.menuItems[index];
+    
+    console.log('点击菜单项:', item.title, '路径:', item.url);
+    
+    if (item.url) {
+      wx.navigateTo({
+        url: item.url,
+        success: (res) => {
+          console.log('跳转成功:', res);
+        },
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          this.showNavigationError(item.title, err);
+        }
+      });
+    } else {
       wx.showToast({
-        title: `查看${statsMap[type]}`,
+        title: `${item.title}功能开发中`,
         icon: 'none'
       });
-    },
-  
-    // 分享功能
-    onShareAppMessage() {
-      return {
-        title: `${this.data.userInfo.nickname}邀请你使用上财易物`,
-        path: '/pages/index/index',
-        imageUrl: '/images/share-logo.png'
-      };
-    },
-  
-    // 联系客服
-    onContactCustomer() {
-      wx.showModal({
-        title: '联系客服',
-        content: '客服微信：shangcai-service\n工作时间：9:00-18:00',
-        showCancel: false
+    }
+  },
+
+  // 显示导航错误信息
+  showNavigationError(title, error) {
+    wx.showModal({
+      title: '跳转失败',
+      content: `无法打开${title}\n错误: ${error.errMsg}\n\n请检查页面文件是否存在`,
+      showCancel: false,
+      confirmText: '知道了'
+    });
+  },
+
+  // 点击用户信息区域
+  onUserInfoTap() {
+    const openid = wx.getStorageSync('openid');
+    if (!openid) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
       });
-    },
-  })
+      wx.navigateTo({
+        url: '/pages/login/login'
+      });
+      return;
+    }
+    
+    console.log('跳转到个人主页');
+    
+    // 直接跳转到个人主页
+    wx.navigateTo({
+      url: '/pages/me/profile/profile',
+      success: (res) => {
+        console.log('跳转到个人主页成功:', res);
+      },
+      fail: (err) => {
+        console.error('跳转到个人主页失败:', err);
+        wx.showModal({
+          title: '跳转失败',
+          content: `错误: ${err.errMsg}\n\n请检查个人主页文件是否存在`,
+          showCancel: false
+        });
+      }
+    });
+  },
+
+  // 点击数据统计项
+  onStatItemTap(e) {
+    const openid = wx.getStorageSync('openid');
+    if (!openid) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      wx.navigateTo({
+        url: '/pages/login/login'
+      });
+      return;
+    }
+    
+    const type = e.currentTarget.dataset.type;
+    const statsMap = {
+      published: '已发布商品',
+      inProgress: '进行中交易',
+      completed: '已成交',
+      favorites: '收藏'
+    };
+    
+    // 跳转到对应的列表页面
+    let url = '';
+    switch(type) {
+      case 'published':
+        url = '/pages/me/my-goods/my-goods?type=published';
+        break;
+      case 'inProgress':
+        url = '/pages/me/my-goods/my-goods?type=inProgress';
+        break;
+      case 'completed':
+        url = '/pages/me/my-goods/my-goods?type=completed';
+        break;
+      case 'favorites':
+        url = '/pages/me/my-goods/my-goods?type=favorites';
+        break;
+    }
+
+    if (url) {
+      wx.navigateTo({
+        url: url
+      });
+    }
+    
+    wx.showToast({
+      title: `查看${statsMap[type]}`,
+      icon: 'none'
+    });
+  },
+
+  // 分享功能
+  onShareAppMessage() {
+    return {
+      title: `${this.data.userInfo.nickname}邀请你使用上财易物`,
+      path: '/pages/index/index',
+      imageUrl: '/images/share-logo.png'
+    };
+  },
+
+  // 联系客服
+  onContactCustomer() {
+    wx.showModal({
+      title: '联系客服',
+      content: '客服微信：shangcai-service\n工作时间：9:00-18:00',
+      showCancel: false
+    });
+  }
+})
