@@ -6,7 +6,7 @@ Page({
     swapGoodsList: [],
     searchValue: '',
     isLoading: false,
-    userCache: new Map() // 添加用户信息缓存
+    // 注意：不要在 data 中放 Map，微信小程序会序列化 data 导致 Map 方法丢失
   },
 
   // 图片加载失败处理
@@ -31,6 +31,8 @@ Page({
   },
 
   onLoad() {
+    // 在页面实例上创建非响应性缓存，避免放入 data（会被序列化）
+    this.userCache = new Map();
     this.loadGoodsData();
   },
 
@@ -169,8 +171,8 @@ Page({
         return this.getDefaultUserInfo();
       }
 
-      if (this.data.userCache.has(userOpenid)) {
-        return this.data.userCache.get(userOpenid);
+      if (this.userCache && this.userCache.has && this.userCache.has(userOpenid)) {
+        return this.userCache.get(userOpenid);
       }
 
       // 3. 从users数据库查询
@@ -189,8 +191,9 @@ Page({
           userId: userData._id
         };
 
-        // 存入缓存
-        this.data.userCache.set(userOpenid, userInfo);
+        // 存入缓存（保存在页面实例上）
+        if (!this.userCache) this.userCache = new Map();
+        this.userCache.set(userOpenid, userInfo);
         return userInfo;
       } else {
         return this.getDefaultUserInfo();

@@ -2,11 +2,10 @@
 <view class="detail-page" wx:if="{{!isLoading}}">
   <!-- 卖家信息 -->
   <view class="seller-info">
-    <view class="seller-header">
+    <view class="seller-header" bindtap="onViewPublisherDetail">
       <image 
         class="seller-avatar" 
         src="{{publisherInfo.avatar || '/images/avatar.png'}}" 
-        bindtap="onViewPublisherDetail"
       />
       <view class="seller-details">
         <view class="seller-name">
