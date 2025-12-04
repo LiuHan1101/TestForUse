@@ -170,26 +170,30 @@
           </view>
           
           <!-- 愿望列表 -->
-          <view 
-            class="wish-item" 
-            wx:for="{{wishGoods}}" 
-            wx:key="_id" 
-            data-id="{{item._id}}"
-            data-index="{{index}}"
-            bindtap="onWishTap">
-            <view class="wish-icon">🎯</view>
-            <view class="wish-info">
-              <view class="wish-title">{{item.title || '未命名愿望'}}</view>
-              <view class="wish-desc">{{item.description || '暂无描述'}}</view>
-              <view class="wish-offer">
-                <text wx:if="{{item.maxPrice > 0}}">愿付 ¥{{item.maxPrice}}</text>
-                <text wx:if="{{item.expectedItem}}">愿换 {{item.expectedItem}}</text>
-                <text wx:if="{{item.maxPrice <= 0 && !item.expectedItem}}">接受商议</text>
+          <view wx:else class="goods-list">
+            <view wx:for="{{wishGoods}}" wx:key="id" 
+                  class="goods-item" 
+                  data-id="{{item.id}}" 
+                  data-type="wish"
+                  bindtap="onGoodsTap">
+              <image src="{{item.image}}" 
+                     class="goods-image" 
+                     mode="aspectFill"
+                     data-index="{{index}}"
+                     data-type="wish"
+                     binderror="onImageError"></image>
+              <view class="goods-info">
+                <text class="goods-title">{{item.title}}</text>
+                <text class="goods-desc">{{item.shortDescription}}</text>
+                <view class="goods-footer">
+                  <text class="goods-price">{{item.transactionTypeText}}</text>
+                  <text class="goods-time">{{item.createTime}}</text>
+               </view>
               </view>
             </view>
           </view>
         </block>
-      </view>
+      </view> 
     </view>
   </view>
 </view>
