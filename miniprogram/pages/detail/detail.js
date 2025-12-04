@@ -486,7 +486,7 @@ Page({
     } else {
       // 出物商品：发起换物
       wx.showToast({
-        title: '换物功能开发中',
+        title: '未设置手机号',
         icon: 'none'
       });
     }

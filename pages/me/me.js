@@ -9,27 +9,44 @@ Page({
         joinDays: 0
       },
       stats: {
-        published: 0,      // 已发布 
-        inProgress: 0,     // 进行中
-        completed: 0,      // 已成交 
-        favorites: 0       // 收藏
+        published: 0,
+        inProgress: 0,
+        completed: 0,
+        favorites: 0
       },
       menuItems: [
         {
-          icon: '🛡️',
+          icon: '/images/credit.png',  
           title: '信用中心',
+          type: 'navigate',
           url: '/pages/me/credit-center/credit-center',
           badge: 0
         },
         {
-          icon: '⚙️',
+          icon: '/images/service.png',  
+          title: '联系客服',
+          type: 'contact',
+          url: '',
+          badge: 0
+        },
+        {
+          icon: '/images/agreement.png',  
+          title: '用户协议',
+          type: 'navigate',
+          url: '/pages/me/agreement/agreement',
+          badge: 0
+        },
+        {
+          icon: '/images/set.png',  
           title: '设置',
+          type: 'navigate',
           url: '/pages/me/set/set',
           badge: 0
         },
         {
-          icon: '❓',
+          icon: '/images/help.png', 
           title: '帮助与反馈',
+          type: 'navigate',
           url: '/pages/me/help-feedback/help-feedback',
           badge: 0
         }
@@ -318,25 +335,51 @@ Page({
       const index = e.currentTarget.dataset.index;
       const item = this.data.menuItems[index];
       
-      console.log('点击菜单项:', item.title, '路径:', item.url);
+      console.log('点击菜单项:', item.title, '类型:', item.type);
       
-      if (item.url) {
-        wx.navigateTo({
-          url: item.url,
-          success: (res) => {
-            console.log('跳转成功:', res);
-          },
-          fail: (err) => {
-            console.error('跳转失败:', err);
-            this.showNavigationError(item.title, err);
+      // 根据类型处理不同的菜单项
+      switch (item.type) {
+        case 'navigate':
+          if (item.url) {
+            wx.navigateTo({
+              url: item.url,
+              success: (res) => {
+                console.log('跳转成功:', res);
+              },
+              fail: (err) => {
+                console.error('跳转失败:', err);
+                this.showNavigationError(item.title, err);
+              }
+            });
+          } else {
+            wx.showToast({
+              title: `${item.title}功能开发中`,
+              icon: 'none'
+            });
           }
-        });
-      } else {
-        wx.showToast({
-          title: `${item.title}功能开发中`,
-          icon: 'none'
-        });
+          break;
+          
+        case 'contact':
+          // 处理联系客服
+          this.contactCustomer();
+          break;
+          
+        default:
+          wx.showToast({
+            title: `${item.title}功能开发中`,
+            icon: 'none'
+          });
       }
+    },
+    
+    // 添加联系客服函数
+    contactCustomer() {
+      wx.showModal({
+        title: '联系客服',
+        content: '客服微信：shangcai-service\n工作时间：9:00-18:00\n邮箱：service@shangcai.com',
+        showCancel: false,
+        confirmText: '知道了'
+      });
     },
   
     // 显示导航错误信息
@@ -349,35 +392,19 @@ Page({
       });
     },
   
-    // 点击用户信息区域
+    // 点击用户信息区域 - 唯一进入个人主页的入口
     onUserInfoTap() {
-      const openid = wx.getStorageSync('openid');
-      if (!openid) {
-        wx.showToast({
-          title: '请先登录',
-          icon: 'none'
-        });
-        wx.navigateTo({
-          url: '/pages/login/login'
-        });
-        return;
-      }
-      
       console.log('跳转到个人主页');
       
       // 直接跳转到个人主页
       wx.navigateTo({
         url: '/pages/me/profile/profile',
         success: (res) => {
-          console.log('跳转到个人主页成功:', res);
+          console.log('跳转成功:', res);
         },
         fail: (err) => {
-          console.error('跳转到个人主页失败:', err);
-          wx.showModal({
-            title: '跳转失败',
-            content: `错误: ${err.errMsg}\n\n请检查个人主页文件是否存在`,
-            showCancel: false
-          });
+          console.error('跳转失败:', err);
+          this.showNavigationError('个人主页', err);
         }
       });
     },
@@ -440,14 +467,5 @@ Page({
         path: '/pages/index/index',
         imageUrl: '/images/share-logo.png'
       };
-    },
-  
-    // 联系客服
-    onContactCustomer() {
-      wx.showModal({
-        title: '联系客服',
-        content: '客服微信：shangcai-service\n工作时间：9:00-18:00',
-        showCancel: false
-      });
     }
   });
