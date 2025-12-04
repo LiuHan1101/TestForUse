@@ -16,7 +16,7 @@ Page({
       // 用户信息
       userInfo: {
         nickname: '加载中...',
-        avatar: '/images/avatar.png',  // 统一使用avatar字段
+        avatar: '/images/avatar.png',
         college: '',
         bio: '',
         joinDays: 0,
@@ -29,7 +29,7 @@ Page({
       publishedGoods: [],
       wishGoods: [],
       
-      // 评价数据（根据实际需求，可能需要从数据库加载）
+      // 评价数据
       ratingScore: 4.7,
       commentCount: 0,
       comments: []
@@ -38,7 +38,6 @@ Page({
     onLoad(options) {
       console.log('个人主页加载，参数:', options);
       
-      // 检查登录状态
       const openid = wx.getStorageSync('openid');
       if (!openid) {
         wx.showToast({
@@ -54,9 +53,7 @@ Page({
         return;
       }
   
-      // 判断是否查看其他用户
       if (options.userId) {
-        // 查看其他用户
         console.log('查看其他用户:', options.userId);
         this.setData({ 
           isViewOtherUser: true, 
@@ -65,7 +62,6 @@ Page({
         });
         this.loadOtherUserData(options.userId);
       } else {
-        // 查看自己
         console.log('查看自己的主页，openid:', openid);
         this.setData({ 
           isViewOtherUser: false, 
@@ -78,7 +74,6 @@ Page({
       }
     },
   
-    // 加载用户数据（查看自己时使用）
     async loadUserData() {
       try {
         const openid = this.data.targetOpenId || wx.getStorageSync('openid');
@@ -90,18 +85,15 @@ Page({
   
         console.log('加载用户数据，openid:', openid);
   
-        // 首先尝试从缓存获取
         const cachedUserInfo = wx.getStorageSync('userInfo');
-        
-        // 从云数据库查询对应用户
         const db = wx.cloud.database();
+        const _ = db.command;
+        
         const userResult = await db.collection('users')
-          .where({
-            $or: [
-              { _openid: openid },
-              { openid: openid }
-            ]
-          })
+          .where(_.or([
+            { _openid: openid },
+            { openid: openid }
+          ]))
           .get();
   
         console.log('用户查询结果:', userResult);
@@ -109,30 +101,14 @@ Page({
         if (userResult.data.length > 0) {
           const userData = userResult.data[0];
           
-          // 统一字段名处理
           const newUserInfo = {
-            // 昵称字段
             nickname: userData.nickname || userData.nickName || cachedUserInfo?.nickname || '上财同学',
-            
-            // 头像字段 - 统一使用avatar
             avatar: userData.avatar || userData.avatarUrl || cachedUserInfo?.avatar || '/images/avatar.png',
-            
-            // 学院
             college: userData.college || cachedUserInfo?.college || '未知学院',
-            
-            // 个人简介
             bio: userData.bio || cachedUserInfo?.bio || '',
-            
-            // 加入天数
-            joinDays: this.calculateJoinDays(userData.createTime || cachedUserInfo?.createTime) || 0,
-            
-            // 信用评分
+            joinDays: this.calculateJoinDays(userData.createTime || cachedUserInfo?.createTime || userData.joinTime) || 1,
             creditScore: userData.creditScore || 4.7,
-            
-            // 标签
             tags: userData.tags || cachedUserInfo?.tags || ['新用户'],
-            
-            // 保留原始ID
             _id: userData._id,
             openid: userData.openid || userData._openid
           };
@@ -144,7 +120,6 @@ Page({
             isLoading: false 
           });
   
-          // 如果是查看自己，更新缓存
           if (!this.data.isViewOtherUser) {
             const cacheData = {
               ...userData,
@@ -152,14 +127,12 @@ Page({
             };
             wx.setStorageSync('userInfo', cacheData);
             
-            // 更新全局数据
             const app = getApp();
             if (app && app.globalData) {
               app.globalData.userInfo = cacheData;
             }
           }
         } else {
-          // 未找到用户数据
           console.log('未找到用户数据');
           this.setData({
             userInfo: {
@@ -182,14 +155,12 @@ Page({
       }
     },
   
-    // 加载其他用户数据
     async loadOtherUserData(userId) {
       try {
         console.log('加载其他用户数据，userId:', userId);
         
         const db = wx.cloud.database();
         
-        // 1. 根据userId获取用户信息
         const userResult = await db.collection('users').doc(userId).get();
         
         console.log('其他用户查询结果:', userResult);
@@ -197,13 +168,12 @@ Page({
         if (userResult.data) {
           const userData = userResult.data;
           
-          // 2. 设置用户信息
           const newUserInfo = {
             nickname: userData.nickname || userData.nickName || '上财同学',
             avatar: userData.avatar || userData.avatarUrl || '/images/avatar.png',
             college: userData.college || '未知学院',
             bio: userData.bio || '',
-            joinDays: this.calculateJoinDays(userData.createTime) || 0,
+            joinDays: this.calculateJoinDays(userData.createTime || userData.joinTime) || 1,
             creditScore: userData.creditScore || 4.7,
             tags: userData.tags || ['该用户暂无标签'],
             _id: userData._id,
@@ -216,7 +186,6 @@ Page({
             isLoading: false 
           });
           
-          // 3. 加载该用户的商品和愿望
           this.loadUserGoods();
           this.loadUserWishes();
         } else {
@@ -247,7 +216,6 @@ Page({
       }
     },
   
-    // 加载用户发布的商品
     async loadUserGoods() {
       try {
         const openid = this.data.targetOpenId || wx.getStorageSync('openid');
@@ -266,19 +234,27 @@ Page({
         this.setData({ isLoadingGoods: true });
         
         const db = wx.cloud.database();
+        const _ = db.command;
+        
         const result = await db.collection('POST')
-          .where({
-            _openid: openid,  // 关键修改：按用户过滤
-            status: 'selling'
-          })
+          .where(_.and([
+            _.or([
+              { _openid: openid },
+              { openid: openid }
+            ]),
+            { status: 'selling' },
+            _.or([
+              { switch: _.neq('wish') },
+              { switch: _.exists(false) }
+            ])
+          ]))
           .orderBy('createTime', 'desc')
-          .limit(20)  // 限制数量，避免过多
+          .limit(20)
           .get();
   
         console.log('商品查询结果:', result);
   
         if (result.data.length === 0) {
-          // 没有商品时设置空数组
           console.log('用户没有发布的商品');
           this.setData({ 
             publishedGoods: [],
@@ -296,7 +272,6 @@ Page({
         }
       } catch (error) {
         console.error('加载用户商品失败:', error);
-        // 查询失败时设置空数组，不再使用模拟数据
         this.setData({ 
           publishedGoods: [],
           showEmptyGoods: true,
@@ -310,7 +285,6 @@ Page({
       }
     },
   
-    // 加载用户愿望
     async loadUserWishes() {
       try {
         const openid = this.data.targetOpenId || wx.getStorageSync('openid');
@@ -323,40 +297,99 @@ Page({
           });
           return;
         }
-  
+
         console.log('加载用户愿望，openid:', openid);
         
         this.setData({ isLoadingWishes: true });
         
         const db = wx.cloud.database();
-        const result = await db.collection('wishes')
-          .where({
-            _openid: openid,  // 关键修改：按用户过滤
-            status: 'pending'
-          })
-          .orderBy('createTime', 'desc')
-          .limit(20)  // 限制数量
-          .get();
-  
-        console.log('愿望查询结果:', result);
-  
-        if (result.data.length === 0) {
+        
+        // 主要修复：简化查询条件
+        console.log('尝试查询用户愿望数据');
+        
+        // 方案1：直接使用_openid和switch字段查询
+        let result;
+        try {
+          result = await db.collection('POST')
+            .where({
+              _openid: openid,  // 直接使用_openid
+              switch: 'wish'    // 只要求是愿望类型
+              // 不指定status，因为愿望可能没有status字段或状态不同
+            })
+            .orderBy('createTime', 'desc')
+            .limit(20)
+            .get();
+          
+          console.log('愿望查询结果:', result);
+        } catch (queryError) {
+          console.log('方案1查询失败:', queryError);
+          
+          // 方案2：尝试不指定_openid，只查询switch为wish的记录
+          try {
+            result = await db.collection('POST')
+              .where({
+                switch: 'wish'
+              })
+              .orderBy('createTime', 'desc')
+              .limit(20)
+              .get();
+            
+            console.log('方案2查询结果（所有愿望）:', result);
+            
+            // 在本地过滤出当前用户的数据
+            if (result.data.length > 0) {
+              console.log('找到愿望记录，需要过滤出当前用户的');
+              const filteredData = result.data.filter(item => {
+                const itemOpenId = item._openid || item.openid;
+                return itemOpenId === openid;
+              });
+              
+              result.data = filteredData;
+              console.log('过滤后的愿望数据:', filteredData);
+            }
+          } catch (error2) {
+            console.log('方案2查询失败:', error2);
+          }
+        }
+
+        if (result && result.data.length > 0) {
+          const processedWishes = this.processWishesData(result.data);
+          console.log('处理后的愿望数据:', processedWishes);
+          this.setData({ 
+            wishGoods: processedWishes,
+            showEmptyWishes: false,
+            isLoadingWishes: false 
+          });
+        } else {
           console.log('用户没有愿望');
+          
+          // 测试：检查数据库中是否有任何愿望记录
+          try {
+            const testResult = await db.collection('POST')
+              .where({
+                switch: 'wish'
+              })
+              .limit(1)
+              .get();
+            
+            console.log('测试查询数据库中的愿望记录:', testResult);
+            if (testResult.data.length > 0) {
+              console.log('数据库中存在愿望记录，第一条记录:', testResult.data[0]);
+              console.log('第一条记录的_openid:', testResult.data[0]._openid);
+              console.log('当前用户的openid:', openid);
+            }
+          } catch (testError) {
+            console.log('测试查询失败:', testError);
+          }
+          
           this.setData({ 
             wishGoods: [],
             showEmptyWishes: true,
             isLoadingWishes: false 
           });
-        } else {
-          this.setData({ 
-            wishGoods: result.data,
-            showEmptyWishes: false,
-            isLoadingWishes: false 
-          });
         }
       } catch (error) {
         console.error('加载用户愿望失败:', error);
-        // 查询失败时设置空数组
         this.setData({ 
           wishGoods: [],
           showEmptyWishes: true,
@@ -370,14 +403,12 @@ Page({
       }
     },
   
-    // 处理商品数据格式
     processGoodsData(goodsList) {
       if (!goodsList || !Array.isArray(goodsList)) {
         return [];
       }
       
       return goodsList.map(item => {
-        // 处理图片，优先使用images数组的第一个，否则用image字段
         let image = '/images/default.jpg';
         if (item.images && item.images.length > 0) {
           image = item.images[0];
@@ -393,16 +424,47 @@ Page({
           image: image,
           transactionType: item.transactionType || 'cash',
           createTime: item.createTime,
-          status: item.status || 'selling'
+          status: item.status || 'selling',
+          switch: item.switch || 'publish'
+        };
+      });
+    },
+    
+    processWishesData(wishesList) {
+      if (!wishesList || !Array.isArray(wishesList)) {
+        return [];
+      }
+      
+      return wishesList.map(item => {
+        let image = '/images/default.jpg';
+        if (item.images && item.images.length > 0) {
+          image = item.images[0];
+        } else if (item.image) {
+          image = item.image;
+        }
+        
+        return {
+          id: item._id || item.id,
+          title: item.title || '未命名愿望',
+          description: item.description || '',
+          expectedswap: item.expectedswap || '任意物品',
+          displayText: item.transactionType === 'swap' ? 
+            `期望交换：${item.expectedswap || '任意物品'}` : 
+            `价格：${parseFloat(item.price) || 0}元`,
+          image: image,
+          transactionType: item.transactionType || 'swap',
+          createTime: item.createTime,
+          status: item.status || 'selling',
+          switch: 'wish',
+          categories: item.categories || []
         };
       });
     },
   
-    // 计算加入天数
     calculateJoinDays(createTime) {
       if (!createTime) {
-        console.log('没有创建时间');
-        return 0;
+        console.log('没有创建时间，使用默认值');
+        return 1;
       }
       
       console.log('计算加入天数，原始数据:', createTime);
@@ -410,64 +472,50 @@ Page({
       let createDate;
       
       try {
-        // 处理多种日期格式
         if (typeof createTime === 'object') {
-          // 处理Date对象
           if (createTime.getTime && typeof createTime.getTime === 'function') {
             createDate = createTime;
-          } 
-          // 处理云数据库日期格式
-          else if (createTime.$date) {
+          } else if (createTime.$date) {
             createDate = new Date(createTime.$date);
-          }
-          // 处理云函数serverDate对象
-          else if (createTime.get) {
-            // 这是云函数的serverDate对象，我们无法直接转换
+          } else if (createTime.get) {
             console.log('云函数serverDate对象，使用当前日期计算');
-            createDate = new Date(); // 近似处理
+            createDate = new Date();
           }
-        } 
-        // 处理字符串
-        else if (typeof createTime === 'string') {
+        } else if (typeof createTime === 'string') {
           createDate = new Date(createTime);
-        }
-        // 处理时间戳
-        else if (typeof createTime === 'number') {
+        } else if (typeof createTime === 'number') {
           createDate = new Date(createTime);
         }
         
-        // 检查日期是否有效
         if (!createDate || isNaN(createDate.getTime())) {
-          console.warn('无效的日期格式:', createTime);
-          return 0;
+          console.warn('无效的日期格式，使用当前日期:', createTime);
+          createDate = new Date();
         }
         
         const now = new Date();
-        const diffTime = now.getTime() - createDate.getTime();
+        const diffTime = Math.abs(now.getTime() - createDate.getTime());
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         
-        // 确保至少显示1天
         const result = Math.max(1, diffDays);
         console.log('计算出的天数:', result);
         return result;
         
       } catch (error) {
         console.error('计算加入天数出错:', error, createTime);
-        return 0;
+        return 1;
       }
     },
   
-    // 切换商品标签
     switchGoodsTab(e) {
       const tab = e.currentTarget.dataset.tab;
       console.log('切换标签:', tab);
       this.setData({ activeGoodsTab: tab });
     },
   
-    // 点击商品
     onGoodsTap(e) {
       const id = e.currentTarget.dataset.id;
       const index = e.currentTarget.dataset.index;
+      const type = e.currentTarget.dataset.type || 'goods';
       
       if (!id) {
         console.error('商品ID为空');
@@ -478,7 +526,7 @@ Page({
         return;
       }
       
-      console.log('点击商品，ID:', id, '索引:', index);
+      console.log('点击商品，ID:', id, '索引:', index, '类型:', type);
       
       wx.navigateTo({
         url: `/pages/detail/detail?id=${id}`,
@@ -492,28 +540,26 @@ Page({
       });
     },
   
-    // 点击愿望
     onWishTap(e) {
       const id = e.currentTarget.dataset.id;
       const index = e.currentTarget.dataset.index;
       
       console.log('点击愿望，ID:', id, '索引:', index);
       
-      wx.showToast({
-        title: '查看愿望详情',
-        icon: 'none'
+      wx.navigateTo({
+        url: `/pages/detail/detail?id=${id}`,
+        fail: (err) => {
+          console.error('跳转失败:', err);
+          wx.showToast({
+            title: '跳转失败',
+            icon: 'none'
+          });
+        }
       });
-      
-      // 如果需要跳转到愿望详情页，可以在这里实现
-      // wx.navigateTo({
-      //   url: `/pages/wishpool/wish-detail/wish-detail?id=${id}`
-      // });
     },
   
-    // 发送私信
     onSendMessage() {
       if (this.data.isViewOtherUser && this.data.userInfo._id) {
-        // 跳转到与目标用户的聊天页面
         wx.navigateTo({
           url: `/pages/chatdetail/chatdetail?targetUserId=${this.data.userInfo._id}&targetNickname=${encodeURIComponent(this.data.userInfo.nickname)}`
         });
@@ -524,7 +570,6 @@ Page({
       }
     },
   
-    // 编辑个人资料（仅自己可见）
     onEditProfile() {
       if (this.data.isViewOtherUser) {
         wx.showToast({
@@ -551,7 +596,6 @@ Page({
       });
     },
   
-    // 添加标签
     onAddTag() {
       wx.showToast({
         title: '添加标签功能开发中',
@@ -559,32 +603,32 @@ Page({
       });
     },
   
-    // 图片加载失败处理
     onImageError(e) {
       const index = e.currentTarget.dataset.index;
-      const type = e.currentTarget.dataset.type; // 'goods' 或 'avatar'
+      const type = e.currentTarget.dataset.type;
       
       console.log('图片加载失败，索引:', index, '类型:', type);
       
       if (type === 'avatar') {
-        // 头像加载失败
         this.setData({
           'userInfo.avatar': '/images/avatar.png'
         });
       } else if (type === 'goods') {
-        // 商品图片加载失败
         const key = `publishedGoods[${index}].image`;
+        this.setData({
+          [key]: '/images/default.jpg'
+        });
+      } else if (type === 'wish') {
+        const key = `wishGoods[${index}].image`;
         this.setData({
           [key]: '/images/default.jpg'
         });
       }
     },
   
-    // 页面显示时刷新数据
     onShow() {
       console.log('个人主页显示');
       
-      // 如果不是查看其他用户，刷新数据
       if (!this.data.isViewOtherUser) {
         const openid = wx.getStorageSync('openid');
         if (openid) {
@@ -599,32 +643,26 @@ Page({
       }
     },
   
-    // 下拉刷新
     onPullDownRefresh() {
       console.log('下拉刷新');
       
       if (this.data.isViewOtherUser) {
-        // 刷新其他用户数据
         this.loadOtherUserData(this.data.targetUserId);
       } else {
-        // 刷新自己数据
         this.loadUserData();
         this.loadUserGoods();
         this.loadUserWishes();
       }
       
-      // 停止下拉刷新
       setTimeout(() => {
         wx.stopPullDownRefresh();
       }, 1000);
     },
   
-    // 分享功能
     onShareAppMessage() {
       let title = `${this.data.userInfo.nickname}的个人主页`;
       let path = `/pages/me/profile/profile`;
       
-      // 如果是查看其他用户，分享时带上userId参数
       if (this.data.isViewOtherUser && this.data.userInfo._id) {
         path += `?userId=${this.data.userInfo._id}`;
       }
