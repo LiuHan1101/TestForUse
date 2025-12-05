@@ -1,82 +1,118 @@
 <view class="container">
-
-<!-- 搜索栏 -->
-<view class="search-bar">
-  <view class="search-input" bindtap="onSearchTap">
-    <text class="search-placeholder">搜索我的商品...</text>
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input" bindtap="onSearchTap">
+      <text class="search-placeholder">搜索我的商品...</text>
+    </view>
   </view>
-</view>
 
-<!-- 商品列表 -->
-<scroll-view class="goods-list" scroll-y>
-  <view class="goods-container">
-    <block wx:for="{{goodsList}}" wx:key="id">
-      
-      <!-- 商品项容器 -->
-      <view class="goods-item-container">
-        <!-- 商品内容 -->
-        <view 
-          class="goods-item-content"
-          bindtap="onGoodsTap"
-          data-id="{{item.id}}"
-          data-index="{{index}}"
-        >
-          <image
-            class="goods-image"
-            src="{{item.image}}"
-            mode="aspectFill"
-            binderror="onImageError"
-            data-index="{{index}}"
-          />
-          <view class="goods-info">
-            <text class="goods-title">{{item.title}}</text>
-            <text class="goods-description">{{item.description}}</text>
-            <view class="goods-meta">
-              <text class="goods-price">¥{{item.price}}</text>
-              <text class="goods-time">{{item.createTime}}</text>
-            </view>
-            <view class="goods-tags">
-              <text class="goods-tag">{{item.transactionType === 'cash' ? '现金' : item.transactionType === 'swap' ? '换物' : '均可'}}</text>
-              <block wx:for="{{item.tag}}" wx:for-item="tag" wx:key="*this">
-                <text class="goods-tag">{{tag}}</text>
-              </block>
-            </view>
-          </view>
-        </view>
+  <!-- 商品列表 -->
+  <scroll-view class="goods-list" scroll-y>
+    <view class="goods-container">
+      <block wx:for="{{goodsList}}" wx:key="id">
         
-        <!-- 右侧操作按钮区域 -->
-        <view class="action-buttons-container">
-          <block wx:if="{{type === 'published'}}">
-            <view
-              class="action-btn edit-btn"
-              bindtap="onEditGoods"
-              data-index="{{index}}"
-            >
-              <text class="btn-text">编辑</text>
-            </view>
-          </block>
-          <view
-            class="action-btn delete-btn"
-            bindtap="onDeleteGoods"
+        <!-- 商品项容器 -->
+        <view class="goods-item-container">
+          <!-- 商品内容 -->
+          <view 
+            class="goods-item-content"
+            bindtap="onGoodsTap"
+            data-id="{{item.id}}"
             data-index="{{index}}"
           >
-            <text class="btn-text">删除</text>
+            <image
+              class="goods-image"
+              src="{{item.image}}"
+              mode="aspectFill"
+              binderror="onImageError"
+              data-index="{{index}}"
+            />
+            <view class="goods-info">
+              <text class="goods-title">{{item.title}}</text>
+              <text class="goods-description">{{item.description}}</text>
+              <view class="goods-meta">
+                <text class="goods-price">¥{{item.price}}</text>
+                <text class="goods-time">{{item.createTime}}</text>
+              </view>
+              <view class="goods-tags">
+                <text class="goods-tag">{{item.transactionType === 'cash' ? '现金' : item.transactionType === 'swap' ? '换物' : '均可'}}</text>
+                <block wx:for="{{item.tag || item.tags}}" wx:for-item="tag" wx:key="*this">
+                  <text class="goods-tag">{{tag}}</text>
+                </block>
+              </view>
+              <!-- 收藏页面显示收藏时间 -->
+              <view class="favorite-time" wx:if="{{type === 'favorites' && item.favoriteTime}}">
+                <text>收藏时间：{{item.favoriteTime}}</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 右侧操作按钮区域 -->
+          <view class="action-buttons-container">
+            <!-- 收藏页面：取消收藏按钮 -->
+            <block wx:if="{{type === 'favorites'}}">
+              <view
+                class="action-btn cancel-btn"
+                bindtap="onCancelFavorite"
+                data-index="{{index}}"
+              >
+                <text class="btn-text">取消收藏</text>
+              </view>
+            </block>
+            
+            <!-- 已发布页面：编辑和删除按钮 -->
+            <block wx:if="{{type === 'published'}}">
+              <view
+                class="action-btn edit-btn"
+                bindtap="onEditGoods"
+                data-index="{{index}}"
+              >
+                <text class="btn-text">编辑</text>
+              </view>
+              <view
+                class="action-btn delete-btn"
+                bindtap="onDeleteGoods"
+                data-index="{{index}}"
+              >
+                <text class="btn-text">删除</text>
+              </view>
+            </block>
+            
+            <!-- 进行中和已成交页面：查看详情按钮 -->
+            <block wx:if="{{type === 'inProgress' || type === 'completed'}}">
+              <view
+                class="action-btn detail-btn"
+                bindtap="onGoodsTap"
+                data-index="{{index}}"
+              >
+                <text class="btn-text">查看详情</text>
+              </view>
+            </block>
+            
+            <!-- 其他类型默认只显示删除按钮（作为备用） -->
+            <block wx:if="{{type !== 'favorites' && type !== 'published' && type !== 'inProgress' && type !== 'completed'}}">
+              <view
+                class="action-btn delete-btn"
+                bindtap="onDeleteGoods"
+                data-index="{{index}}"
+              >
+                <text class="btn-text">删除</text>
+              </view>
+            </block>
           </view>
         </view>
-      </view>
-      
-    </block>
-  </view>
+      </block>
+    </view>
 
-  <!-- 空状态 -->
-  <view wx:if="{{goodsList.length === 0 && !isLoading}}" class="empty-state">
-    <text class="empty-text">暂无商品</text>
-  </view>
+    <!-- 空状态 -->
+    <view wx:if="{{goodsList.length === 0 && !isLoading}}" class="empty-state">
+      <view class="empty-icon" wx:if="{{type === 'favorites'}}">❤️</view>
+      <text class="empty-text">{{noDataMessage || '暂无商品'}}</text>
+    </view>
 
-  <!-- 加载状态 -->
-  <view wx:if="{{isLoading}}" class="loading-state">
-    <text class="loading-text">加载中...</text>
-  </view>
-</scroll-view>
-
+    <!-- 加载状态 -->
+    <view wx:if="{{isLoading}}" class="loading-state">
+      <text class="loading-text">加载中...</text>
+    </view>
+  </scroll-view>
 </view>
