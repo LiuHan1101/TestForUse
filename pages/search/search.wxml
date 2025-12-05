@@ -19,21 +19,35 @@
     </view>
   </view>
 
-  <!-- 搜索历史 -->
-  <view class="search-history" wx:if="{{!searchValue && searchHistory.length > 0}}">
-    <view class="history-header">
-      <text class="history-title">搜索历史</text>
-      <text class="clear-all" bindtap="onClearAllHistory">一键清除</text>
-    </view>
-    <view class="history-list">
-                <view class="history-item" wx:for="{{searchHistory}}" wx:key="*this">
-        <text class="history-text">{{item}}</text>
-        <view class="delete-btn" catchtap="onDeleteHistory" data-index="{{index}}">
-            <text class="delete-icon">×</text>
-        </view>
-        </view>
+<!-- 搜索历史 -->
+<view class="search-history" wx:if="{{!searchValue && searchHistory.length > 0}}">
+  <view class="history-header">
+    <text class="history-title">搜索历史</text>
+    <text class="clear-all" bindtap="onClearAllHistory">一键清除</text>
+  </view>
+  <view class="history-list">
+    <!-- 【关键修复】添加 wx:for-item 和 wx:for-index -->
+    <view 
+      class="history-item" 
+      wx:for="{{searchHistory}}" 
+      wx:key="*this"
+      wx:for-index="index" 
+      wx:for-item="item"
+      bindtap="onHistoryItemTap"
+      data-keyword="{{item}}"
+    >
+      <text class="history-text">{{item}}</text>
+      <view 
+        class="delete-btn" 
+        catchtap="onDeleteHistory" 
+        data-index="{{index}}"
+        data-keyword="{{item}}"
+      >
+        <text class="delete-icon"> × </text>
+      </view>
     </view>
   </view>
+</view>
 
   <!-- 热门搜索推荐 -->
   <view class="hot-search" wx:if="{{!searchValue}}">
