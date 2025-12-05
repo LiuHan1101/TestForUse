@@ -7,6 +7,17 @@ Page({
     searchValue: '',
     isLoading: false,
     // 注意：不要在 data 中放 Map，微信小程序会序列化 data 导致 Map 方法丢失
+<<<<<<< HEAD
+=======
+  },
+
+  // 切换标签
+  switchTab: function(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({
+      activeTab: tab
+    });
+>>>>>>> develop2.0-ZRT
   },
 
   // 图片加载失败处理

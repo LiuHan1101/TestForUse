@@ -1,11 +1,19 @@
+<<<<<<< HEAD
 <view class="container">
+=======
+<view class="container {{type === 'published' ? 'published-page' : 'other-page'}}">
+>>>>>>> develop2.0-ZRT
   <!-- 搜索栏 -->
   <view class="search-bar">
     <view class="search-input" bindtap="onSearchTap">
       <text class="search-placeholder">搜索我的商品...</text>
     </view>
   </view>
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> develop2.0-ZRT
   <!-- 商品列表 -->
   <scroll-view class="goods-list" scroll-y>
     <view class="goods-container">
@@ -13,13 +21,23 @@
         
         <!-- 商品项容器 -->
         <view class="goods-item-container">
+<<<<<<< HEAD
           <!-- 商品内容 -->
+=======
+          <!-- 商品内容 - 使用与主页相同的结构 -->
+>>>>>>> develop2.0-ZRT
           <view 
             class="goods-item-content"
             bindtap="onGoodsTap"
             data-id="{{item.id}}"
+<<<<<<< HEAD
             data-index="{{index}}"
           >
+=======
+            data-index="{{index}}">
+            
+            <!-- 商品图片 -->
+>>>>>>> develop2.0-ZRT
             <image
               class="goods-image"
               src="{{item.image}}"
@@ -27,6 +45,7 @@
               binderror="onImageError"
               data-index="{{index}}"
             />
+<<<<<<< HEAD
             <view class="goods-info">
               <text class="goods-title">{{item.title}}</text>
               <text class="goods-description">{{item.description}}</text>
@@ -110,6 +129,66 @@
       <text class="empty-text">{{noDataMessage || '暂无商品'}}</text>
     </view>
 
+=======
+            
+            <!-- 商品信息 - 与主页相同的布局 -->
+            <view class="goods-info">
+              <!-- 标题和价格 -->
+              <view class="goods-header">
+                <view class="goods-title">{{item.title}}</view>
+                <view class="goods-price"><text wx:if="{{item.price > 0 && item.transactionType !== 'swap'}}">¥{{item.price}}</text></view>
+              </view>
+              
+              <!-- 描述和时间 -->
+              <view class="goods-meta">
+                <view class="goods-description">{{item.description}}</view>
+                <view class="goods-time">{{item.createTime}}</view>
+              </view>
+              
+              <!-- 标签和交易类型 - 与主页相同的底部布局 -->
+              <view class="goods-bottom">
+                <view class="goods-tags">
+                  <!-- 只显示普通标签，不显示交易类型标签 -->
+                  <block wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">
+                    <text class="goods-tag">{{tag}}</text>
+                  </block>
+                </view>
+                <!-- 交易类型在右侧显示为灰色 -->
+                <view class="goods-type">{{item.transactionType === 'cash' ? '现金' : item.transactionType === 'swap' ? '换物' : '均可'}}</view>
+              </view>
+            </view>  
+          </view>
+          
+          <!-- 右侧操作图标区域 - 保持不变 -->
+          <view class="action-buttons-container">
+            <block wx:if="{{type === 'published'}}">
+              <image
+                class="action-icon edit-icon"
+                src="/images/edit.png"
+                catchtap="onEditGoods"
+                data-index="{{index}}"
+                data-id="{{item.id}}"
+              />
+            </block>
+            <image
+              class="action-icon delete-icon"
+              src="/images/delete.png"
+              catchtap="onDeleteGoods"
+              data-index="{{index}}"
+              data-id="{{item.id}}"
+            />
+          </view>
+        </view>
+        
+      </block>
+    </view>
+    
+    <!-- 空状态 -->
+    <view wx:if="{{goodsList.length === 0 && !isLoading}}" class="empty-state">
+      <text class="empty-text">暂无商品</text>
+    </view>
+    
+>>>>>>> develop2.0-ZRT
     <!-- 加载状态 -->
     <view wx:if="{{isLoading}}" class="loading-state">
       <text class="loading-text">加载中...</text>
