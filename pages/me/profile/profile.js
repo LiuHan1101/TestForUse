@@ -533,51 +533,41 @@ Page({
       return '';
     }
   },
-
+  // 计算加入天数
   calculateJoinDays(createTime) {
-    if (!createTime) {
-      console.log('没有创建时间，使用默认值');
-      return 1;
-    }
-    
-    console.log('计算加入天数，原始数据:', createTime);
+    if (!createTime) return 1;
     
     let createDate;
     
-    try {
-      if (typeof createTime === 'object') {
-        if (createTime.getTime && typeof createTime.getTime === 'function') {
-          createDate = createTime;
-        } else if (createTime.$date) {
-          createDate = new Date(createTime.$date);
-        } else if (createTime.get) {
-          console.log('云函数serverDate对象，使用当前日期计算');
-          createDate = new Date();
-        }
-      } else if (typeof createTime === 'string') {
-        createDate = new Date(createTime);
-      } else if (typeof createTime === 'number') {
-        createDate = new Date(createTime);
-      }
-      
-      if (!createDate || isNaN(createDate.getTime())) {
-        console.warn('无效的日期格式，使用当前日期:', createTime);
-        createDate = new Date();
-      }
-      
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - createDate.getTime());
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      const result = Math.max(1, diffDays);
-      console.log('计算出的天数:', result);
-      return result;
-      
-    } catch (error) {
-      console.error('计算加入天数出错:', error, createTime);
-      return 1;
+    // 处理不同类型的日期格式
+    if (typeof createTime === 'object' && createTime.constructor.name === 'Date') {
+      // 如果是Date对象
+      createDate = createTime;
+    } else if (typeof createTime === 'string') {
+      // 如果是字符串
+      createDate = new Date(createTime);
+    } else if (createTime.getTime) {
+      // 如果是云数据库的服务器时间对象
+      createDate = new Date(createTime.getTime());
+    } else {
+      console.log('无法解析的日期格式:', createTime);
+      return 0;
     }
+    
+    // 检查日期是否有效
+    if (isNaN(createDate.getTime())) {
+      console.log('无效的日期:', createTime);
+      return 0;
+    }
+    
+    const now = new Date();
+    const diffTime = now.getTime() - createDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // 如果是当天加入，显示1天
+    return diffDays >= 0 ? diffDays + 1 : 0;
   },
+
 
   switchGoodsTab(e) {
     const tab = e.currentTarget.dataset.tab;

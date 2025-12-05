@@ -171,7 +171,6 @@
                 <!-- 交易类型（灰色） -->
                 <view class="goods-type">{{item.transactionType === 'cash' ? '现金' : item.transactionType === 'swap' ? '换物' : '均可'}}</view>
               </view>
-              <view class="goods-desc">{{item.description}}</view>
             </view>
           </view>
         </block>
