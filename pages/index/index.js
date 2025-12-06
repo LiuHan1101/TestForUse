@@ -382,41 +382,52 @@ goToDetail(e) {
   }
 },
 
-  formatTime(time) {
-    console.log('调试 - 原始时间:', time);
-
-    if (!time) return '刚刚';
-
+  // 格式化时间函数 - 使用相对时间显示
+  formatTime(createTime) {
+    if (!createTime) return '';
+    
+    let date;
+    
     try {
-      // 如果是云数据库服务器时间对象
-      if (time && time.$date) {
-        const dateStr = time.$date;
-        return dateStr.replace('T', ' ').substring(0, 16);
+      if (typeof createTime === 'object') {
+        if (createTime.getTime && typeof createTime.getTime === 'function') {
+          date = createTime;
+        } else if (createTime.$date) {
+          date = new Date(createTime.$date);
+        }
+      } else if (typeof createTime === 'string') {
+        date = new Date(createTime);
+      } else if (typeof createTime === 'number') {
+        date = new Date(createTime);
       }
-
-      // 统一转换为 Date 对象处理
-      const date = new Date(time);
-
-      if (isNaN(date.getTime())) {
-        // 如果转换失败，返回简化版本
-        return String(time).substring(4, 21);
+      
+      if (!date || isNaN(date.getTime())) {
+        return '';
       }
-
-      // 成功转换，格式化输出
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      const hour = date.getHours().toString().padStart(2, '0');
-      const minute = date.getMinutes().toString().padStart(2, '0');
-
-      return `${year}-${month}-${day} ${hour}:${minute}`;
-
+      
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        // 今天
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      } else if (diffDays === 1) {
+        return '昨天';
+      } else if (diffDays < 7) {
+        return `${diffDays}天前`;
+      } else {
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${month}-${day}`;
+      }
     } catch (error) {
-      console.error('时间处理错误:', error);
-      return String(time).substring(4, 21);
+      console.error('格式化时间出错:', error);
+      return '';
     }
   },
-
   // 下拉刷新
   onPullDownRefresh() {
     this.loadGoodsData().finally(() => {

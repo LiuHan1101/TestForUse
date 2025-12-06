@@ -597,18 +597,86 @@ Page({
         this.showConfirmPopup(goods);
       }
     },
-  
-    // 显示确认弹窗
-    showConfirmPopup(goods) {
-      this.setData({
-        showConfirmPopup: true,
-        popupProductInfo: {
-          image: goods.images && goods.images.length > 0 ? goods.images[0] : '/images/default.jpg',
-          title: goods.title,
-          price: goods.price
-        }
-      });
-    },
+   // 显示确认弹窗 - 统一处理所有交易类型
+    showConfirmPopup(goods) {
+        this.setData({
+          showConfirmPopup: true,
+          popupProductInfo: {
+            image: goods.images && goods.images.length > 0 ? goods.images[0] : '/images/default.jpg',
+            title: goods.title,
+            price: goods.price
+          }
+        });
+      },
+    
+      // 弹窗关闭事件
+      onPopupClose() {
+        this.setData({
+          showConfirmPopup: false
+        });
+      },
+    
+      // 弹窗取消事件
+      onPopupCancel() {
+        console.log('用户取消交易');
+        this.setData({
+          showConfirmPopup: false
+        });
+      },
+    
+      // 弹窗确认事件
+      onPopupConfirm(e) {
+        const transactionInfo = e.detail;
+        console.log('交易信息:', transactionInfo);
+        
+        // 统一显示成功提示
+        wx.showToast({
+          title: '交易申请已提交',
+          icon: 'success'
+        });
+        
+        // 提交交易信息到后端（只包含时间和地点）
+        this.submitTransaction(transactionInfo);
+        
+        this.setData({
+          showConfirmPopup: false
+        });
+      },
+    
+      // 提交交易信息到后端
+      async submitTransaction(transactionInfo) {
+        try {
+          const { goods } = this.data;
+          
+          // 只包含时间和地点信息
+          const transactionData = {
+            goodsId: goods.id,
+            goodsTitle: goods.title,
+            transactionTime: transactionInfo.time || '', // 交易时间
+            transactionLocation: transactionInfo.location || '', // 交易地点
+            remark: transactionInfo.remark || '', // 备注
+            timestamp: new Date(),
+            status: 'pending' // 交易状态：pending待确认
+          };
+          
+          console.log('提交交易数据:', transactionData);
+          
+          // 调用云函数提交交易
+          const result = await wx.cloud.callFunction({
+            name: 'createTransaction',
+            data: transactionData
+          });
+          
+          console.log('交易提交成功:', result);
+          
+        } catch (error) {
+          console.error('交易提交失败:', error);
+          wx.showToast({
+            title: '交易提交失败，请重试',
+            icon: 'none'
+          });
+        }
+      },
   
     // 弹窗关闭事件
     onPopupClose() {
